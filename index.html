@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>RepoSkeleton - Abandoned Open Source Radar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="theme-color" content="#1a1a1b">
+  <style>
+    body { -webkit-tap-highlight-color: transparent; }
+    .badge-active { background-color: #ea580c !important; color: #ffffff !important; border-color: #ea580c !important; }
+  </style>
+</head>
+<body class="bg-[#0e1113] text-gray-200 min-h-screen pb-16 antialiased selection:bg-orange-500 selection:text-white">
+
+  <!-- Header / Navbar -->
+  <header class="border-b border-[#22272b] bg-[#1a1a1b]/95 backdrop-blur sticky top-0 z-50 px-4 py-3">
+    <div class="max-w-5xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
+      
+      <!-- Brand & Mobile Counter -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center font-bold text-white text-base">r/</div>
+          <div>
+            <span class="font-bold text-base tracking-tight text-white block leading-none">RepoSkeleton</span>
+            <span class="text-[10px] text-orange-400 font-mono tracking-wide">DIGITAL DUMPSTER DIVER</span>
+          </div>
+        </div>
+        <div id="auth-container-mobile" class="md:hidden"></div>
+      </div>
+
+      <!-- Search Input -->
+      <div class="flex-1 max-w-md mx-auto md:mx-4 w-full">
+        <input 
+          type="text" 
+          id="search-input" 
+          oninput="applyFilters()" 
+          placeholder="Search by keyword (e.g. gpt, spotify, cli, react)..." 
+          class="w-full bg-[#272729] text-xs text-gray-200 border border-[#343536] rounded-full px-4 py-2 focus:outline-none focus:border-orange-500 placeholder-gray-500"
+        >
+      </div>
+
+      <!-- Desktop Auth Button -->
+      <div id="auth-container-desktop" class="hidden md:flex items-center space-x-3"></div>
+
+    </div>
+  </header>
+
+  <!-- Filter & Controls -->
+  <section class="max-w-5xl mx-auto px-3 sm:px-4 pt-4">
+    <div class="bg-[#1a1a1b] border border-[#2a3236] rounded-xl p-3 space-y-3">
+      
+      <!-- Sort & Language -->
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#22272b] pb-2.5">
+        <div class="flex items-center space-x-1.5 text-xs font-semibold">
+          <span class="text-gray-400 mr-1 text-[11px] uppercase tracking-wider">Sort:</span>
+          <button onclick="setSort('stars')" id="sort-stars" class="sort-btn px-2.5 py-1 rounded-md bg-[#272729] text-orange-400 hover:text-white">Stars</button>
+          <button onclick="setSort('issues')" id="sort-issues" class="sort-btn px-2.5 py-1 rounded-md bg-[#272729] text-gray-400 hover:text-white">Most Demanded (Issues)</button>
+          <button onclick="setSort('dormant')" id="sort-dormant" class="sort-btn px-2.5 py-1 rounded-md bg-[#272729] text-gray-400 hover:text-white">Longest Inactive</button>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <label for="lang-select" class="text-gray-400 text-xs">Language:</label>
+          <select id="lang-select" onchange="applyFilters()" class="bg-[#272729] text-xs text-gray-200 border border-[#343536] rounded-lg px-2.5 py-1 focus:outline-none">
+            <option value="all">All Languages</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Category Filter Tags -->
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+        <span class="text-gray-400 text-[11px] whitespace-nowrap uppercase tracking-wider">Tag:</span>
+        <button onclick="setTag('all')" class="tag-btn badge-active px-3 py-1 rounded-full border border-[#343536] bg-[#272729] text-gray-300 font-medium whitespace-nowrap">All</button>
+        <button onclick="setTag('ai')" class="tag-btn px-3 py-1 rounded-full border border-[#343536] bg-[#272729] text-gray-300 font-medium whitespace-nowrap">AI & LLM</button>
+        <button onclick="setTag('cli')" class="tag-btn px-3 py-1 rounded-full border border-[#343536] bg-[#272729] text-gray-300 font-medium whitespace-nowrap">CLI & Tools</button>
+        <button onclick="setTag('web')" class="tag-btn px-3 py-1 rounded-full border border-[#343536] bg-[#272729] text-gray-300 font-medium whitespace-nowrap">Web & UI</button>
+        <button onclick="setTag('mobile')" class="tag-btn px-3 py-1 rounded-full border border-[#343536] bg-[#272729] text-gray-300 font-medium whitespace-nowrap">Mobile</button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Feed Area -->
+  <main class="max-w-5xl mx-auto px-3 sm:px-4 py-4">
+    <div id="feed-container" class="space-y-3">
+      <div class="text-center py-12 text-gray-400 text-sm">Loading repos...</div>
+    </div>
+
+    <!-- Load More -->
+    <div class="text-center mt-6">
+      <button id="load-more-btn" onclick="loadMore()" class="hidden bg-[#272729] hover:bg-orange-600 hover:text-white text-gray-200 border border-[#343536] text-xs font-semibold px-6 py-2.5 rounded-full transition-all">
+        Load More (+25)
+      </button>
+    </div>
+  </main>
+
+  <!-- Reddit-Style Discussion / Comments Drawer Modal -->
+  <div id="comment-modal" class="fixed inset-0 bg-black/75 z-50 hidden flex justify-end transition-opacity">
+    <div class="w-full max-w-lg bg-[#1a1a1b] h-full flex flex-col border-l border-[#2a3236] shadow-2xl">
+      
+      <!-- Drawer Header -->
+      <div class="p-4 border-b border-[#22272b] flex items-center justify-between bg-[#151718]">
+        <div>
+          <span class="text-xs text-orange-400 font-mono uppercase tracking-wider">Project Control & Discussion</span>
+          <h3 id="modal-repo-name" class="font-bold text-white text-base truncate max-w-xs"></h3>
+        </div>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-white text-xl font-bold px-2">✕</button>
+      </div>
+
+      <!-- Status & Revive Link Management Box -->
+      <div class="p-3 bg-[#111315] border-b border-[#22272b] space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-300 font-semibold">Project Lifecycle:</span>
+          <select id="modal-status-select" class="bg-[#272729] text-xs text-gray-200 border border-[#343536] rounded px-2 py-1 focus:outline-none">
+            <option value="dormant">Dormant (Abandoned)</option>
+            <option value="wip">In Progress (WIP)</option>
+            <option value="revived">Revived (Active & Working)</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <input 
+            type="url" 
+            id="modal-revived-url" 
+            placeholder="Revived fork or live demo URL (e.g. https://github.com/...)" 
+            class="flex-1 bg-[#272729] text-xs text-gray-200 border border-[#343536] rounded px-2.5 py-1.5 focus:outline-none focus:border-orange-500 placeholder-gray-500"
+          >
+          <button onclick="saveProjectStatus()" class="bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold px-3 py-1.5 rounded transition-colors whitespace-nowrap">
+            Update Status
+          </button>
+        </div>
+      </div>
+
+      <!-- Drawer Body: Comment List -->
+      <div id="comments-list" class="flex-1 overflow-y-auto p-4 space-y-3">
+        <div class="text-center text-xs text-gray-500 py-8">Loading thoughts & ideas...</div>
+      </div>
+
+      <!-- Drawer Footer: Add Comment -->
+      <div class="p-3 border-t border-[#22272b] bg-[#151718]">
+        <div id="comment-input-area">
+          <textarea id="comment-text" placeholder="Share your revive plan, tech suggestions or ideas..." rows="2" class="w-full bg-[#272729] text-xs text-gray-200 border border-[#343536] rounded-lg p-2.5 focus:outline-none focus:border-orange-500 resize-none"></textarea>
+          <div class="flex justify-between items-center mt-2">
+            <span id="comment-user-hint" class="text-[11px] text-gray-400"></span>
+            <button onclick="submitComment()" class="bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold px-4 py-1.5 rounded-md transition-colors">
+              Post Comment
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let rawRepos = [];
+    let filteredRepos = [];
+    let discussionsData = {};
+    let currentLimit = 25;
+    let currentSort = 'stars';
+    let currentTag = 'all';
+    let activeRepoForModal = null;
+
+    // User State
+    let currentUser = null;
+    let currentToken = null;
+    let currentAvatar = null;
+
+    function checkAuth() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      const user = urlParams.get('user');
+      const avatar = urlParams.get('avatar');
+
+      if (token && user) {
+        localStorage.setItem('gh_token', token);
+        localStorage.setItem('gh_user', user);
+        localStorage.setItem('gh_avatar', avatar);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      currentToken = localStorage.getItem('gh_token');
+      currentUser = localStorage.getItem('gh_user');
+      currentAvatar = localStorage.getItem('gh_avatar');
+
+      renderAuthUI();
+    }
+
+    function renderAuthUI() {
+      const desktop = document.getElementById('auth-container-desktop');
+      const mobile = document.getElementById('auth-container-mobile');
+
+      if (currentUser) {
+        const userHtml = `
+          <div class="flex items-center space-x-2">
+            <img src="${currentAvatar}" class="w-7 h-7 rounded-full border border-gray-600">
+            <span class="text-xs font-semibold text-white">@${currentUser}</span>
+            <button onclick="logout()" class="text-xs text-gray-400 hover:text-red-400 ml-1">Exit</button>
+          </div>
+        `;
+        desktop.innerHTML = userHtml;
+        mobile.innerHTML = userHtml;
+      } else {
+        const loginBtn = `
+          <a href="/login" class="bg-[#24292e] hover:bg-black text-white text-xs font-semibold px-3 py-1.5 rounded-full border border-gray-600 flex items-center space-x-1.5 transition-colors">
+            <span>Login with GitHub</span>
+          </a>
+        `;
+        desktop.innerHTML = loginBtn;
+        mobile.innerHTML = loginBtn;
+      }
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.reload();
+    }
+
+    async function init() {
+      checkAuth();
+      try {
+        const [reposRes, discRes] = await Promise.all([
+          fetch('/repos.json'),
+          fetch('/api/discussions')
+        ]);
+        rawRepos = await reposRes.json();
+        discussionsData = await discRes.json();
+        
+        populateLanguageDropdown();
+        applyFilters();
+      } catch (e) {
+        document.getElementById('feed-container').innerHTML = 
+          '<div class="p-4 bg-red-950/40 border border-red-800 text-red-300 text-xs rounded-lg text-center">Failed to load repository data.</div>';
+      }
+    }
+
+    function populateLanguageDropdown() {
+      const langCounts = {};
+      rawRepos.forEach(r => {
+        const lang = r.language || 'Other';
+        langCounts[lang] = (langCounts[lang] || 0) + 1;
+      });
+
+      const select = document.getElementById('lang-select');
+      Object.keys(langCounts)
+        .sort((a, b) => langCounts[b] - langCounts[a])
+        .forEach(lang => {
+          const opt = document.createElement('option');
+          opt.value = lang.toLowerCase();
+          opt.textContent = `${lang} (${langCounts[lang]})`;
+          select.appendChild(opt);
+        });
+    }
+
+    function setSort(type) {
+      currentSort = type;
+      document.querySelectorAll('.sort-btn').forEach(b => b.classList.replace('text-orange-400', 'text-gray-400'));
+      document.getElementById('sort-' + type).classList.replace('text-gray-400', 'text-orange-400');
+      applyFilters();
+    }
+
+    function setTag(tag) {
+      currentTag = tag;
+      document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('badge-active'));
+      event.target.classList.add('badge-active');
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const search = document.getElementById('search-input').value.toLowerCase().trim();
+      const lang = document.getElementById('lang-select').value;
+
+      filteredRepos = rawRepos.filter(r => {
+        if (lang !== 'all' && (r.language || '').toLowerCase() !== lang) return false;
+
+        if (search) {
+          const inName = r.full_name.toLowerCase().includes(search);
+          const inDesc = (r.description || '').toLowerCase().includes(search);
+          if (!inName && !inDesc) return false;
+        }
+
+        if (currentTag !== 'all') {
+          const text = (r.full_name + ' ' + (r.description || '')).toLowerCase();
+          if (currentTag === 'ai' && !text.match(/gpt|ai|llm|openai|bot|model|nlp/)) return false;
+          if (currentTag === 'cli' && !text.match(/cli|terminal|command|tool|bash|shell/)) return false;
+          if (currentTag === 'web' && !text.match(/web|react|vue|ui|css|html|frontend/)) return false;
+          if (currentTag === 'mobile' && !text.match(/ios|android|mobile|swift|flutter/)) return false;
+        }
+
+        return true;
+      });
+
+      if (currentSort === 'stars') {
+        filteredRepos.sort((a, b) => b.stars - a.stars);
+      } else if (currentSort === 'issues') {
+        filteredRepos.sort((a, b) => b.issues - a.issues);
+      } else if (currentSort === 'dormant') {
+        filteredRepos.sort((a, b) => new Date(a.last_push) - new Date(b.last_push));
+      }
+
+      currentLimit = 25;
+      updateCounters();
+      render();
+    }
+
+    function updateCounters() {
+      const countText = `${filteredRepos.length.toLocaleString()} repos`;
+      const mobileCounter = document.getElementById('match-counter');
+      if (mobileCounter) mobileCounter.textContent = countText;
+    }
+
+    function render() {
+      const container = document.getElementById('feed-container');
+      container.innerHTML = '';
+
+      if (filteredRepos.length === 0) {
+        container.innerHTML = '<div class="text-center py-16 text-gray-500 text-xs">No repositories matched your filters.</div>';
+        document.getElementById('load-more-btn').classList.add('hidden');
+        return;
+      }
+
+      const visibleSlice = filteredRepos.slice(0, currentLimit);
+
+      visibleSlice.forEach(repo => {
+        const meta = discussionsData[repo.full_name] || { status: 'dormant', comments: [] };
+        
+        // Status Badge Logic
+        let badgeHtml = '<span class="ml-auto text-[10px] bg-red-950/70 border border-red-800/60 text-red-400 px-1.5 py-0.5 rounded font-mono uppercase tracking-wider">DORMANT</span>';
+        if (meta.status === 'wip') {
+          badgeHtml = `<span class="ml-auto text-[10px] bg-yellow-950/70 border border-yellow-700/60 text-yellow-300 px-1.5 py-0.5 rounded font-mono uppercase tracking-wider">WIP by @${meta.claimed_by || 'someone'}</span>`;
+        } else if (meta.status === 'revived') {
+          badgeHtml = '<span class="ml-auto text-[10px] bg-emerald-950/80 border border-emerald-600/80 text-emerald-300 px-1.5 py-0.5 rounded font-mono uppercase tracking-wider font-bold">REVIVED</span>';
+        }
+
+        // Revived Link Action Button
+        let revivedAction = '';
+        if (meta.status === 'revived' && meta.revived_url) {
+          revivedAction = `
+            <a href="${meta.revived_url}" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded-md text-[11px] font-semibold transition-colors flex items-center gap-1">
+              View Revived Version ↗
+            </a>
+          `;
+        }
+
+        const commentsCount = (meta.comments || []).length;
+
+        const card = document.createElement('article');
+        card.className = "bg-[#1a1a1b] border border-[#2a3236] hover:border-gray-500/70 rounded-xl overflow-hidden transition-all flex flex-col sm:flex-row shadow-sm";
+        card.innerHTML = `
+          <!-- Upvote Column -->
+          <div class="hidden sm:flex w-11 bg-[#151718] flex-col items-center py-3 border-r border-[#22272b]">
+            <button onclick="vote(this, 1)" class="text-gray-400 hover:text-orange-500 text-xs font-bold leading-none py-1">▲</button>
+            <span class="text-[11px] font-bold text-gray-200 my-1 font-mono">${repo.votes}</span>
+            <button onclick="vote(this, -1)" class="text-gray-400 hover:text-blue-500 text-xs font-bold leading-none py-1">▼</button>
+          </div>
+
+          <!-- Content Body -->
+          <div class="p-3.5 sm:p-4 flex-1 flex flex-col justify-between space-y-2.5">
+            <div onclick="openComments('${repo.full_name}')" class="cursor-pointer">
+              <div class="flex items-center flex-wrap gap-1.5 text-[11px] text-gray-400 mb-1">
+                <span class="font-bold text-white bg-[#272729] px-2 py-0.5 rounded-full">r/${(repo.language || 'other').toLowerCase()}</span>
+                <span>•</span>
+                <span>Last commit: ${repo.last_push}</span>
+                ${badgeHtml}
+              </div>
+
+              <h2 class="text-base sm:text-lg font-bold text-white hover:text-orange-400 transition-colors break-words">
+                ${repo.full_name}
+              </h2>
+
+              <p class="text-xs sm:text-sm text-gray-300 leading-relaxed mt-1">
+                ${repo.description}
+              </p>
+            </div>
+
+            <!-- Footer Meta & Actions -->
+            <div class="flex items-center justify-between text-xs text-gray-400 pt-2.5 border-t border-[#22272b] flex-wrap gap-2">
+              <div class="flex items-center space-x-3 text-[11px]">
+                <span class="font-medium text-amber-300 font-mono">${repo.stars.toLocaleString()} Stars</span>
+                <span class="font-medium text-blue-300 font-mono">${repo.issues} Issues</span>
+                <button onclick="openComments('${repo.full_name}')" class="text-gray-400 hover:text-white underline ml-1">
+                  Discussion (${commentsCount})
+                </button>
+              </div>
+              
+              <div class="flex items-center space-x-2">
+                ${revivedAction}
+                <button onclick="claimAndFork('${repo.full_name}', this)" class="bg-[#272729] hover:bg-orange-600 hover:text-white text-gray-300 px-3 py-1 rounded-md text-[11px] font-semibold transition-colors">
+                  Claim & Fork
+                </button>
+                <a href="${repo.url}" target="_blank" class="bg-[#22272b] hover:bg-gray-700 text-gray-300 px-3 py-1 rounded-md text-[11px] font-semibold transition-colors">
+                  GitHub
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      const loadBtn = document.getElementById('load-more-btn');
+      if (currentLimit < filteredRepos.length) {
+        loadBtn.classList.remove('hidden');
+      } else {
+        loadBtn.classList.add('hidden');
+      }
+    }
+
+    function loadMore() {
+      currentLimit += 25;
+      render();
+    }
+
+    function vote(btn, delta) {
+      const span = btn.parentElement.querySelector('span');
+      span.innerText = parseInt(span.innerText) + delta;
+      btn.classList.add('text-orange-500');
+    }
+
+    async function claimAndFork(repoFullName, btn) {
+      if (!currentToken) {
+        alert("Please login with GitHub first to automatically fork this repository!");
+        window.location.href = "/login";
+        return;
+      }
+
+      const originalText = btn.innerText;
+      btn.innerText = "Forking...";
+      btn.disabled = true;
+
+      try {
+        const res = await fetch("/api/fork", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: currentToken, repo: repoFullName, user: currentUser })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          alert(`Success! Repository successfully forked to your account:\n${data.fork_url}`);
+          // Yerel veriyi güncelle ve anında render et
+          if (!discussionsData[repoFullName]) discussionsData[repoFullName] = { status: 'wip', comments: [] };
+          discussionsData[repoFullName].status = 'wip';
+          discussionsData[repoFullName].claimed_by = currentUser;
+          discussionsData[repoFullName].revived_url = data.fork_url;
+          render();
+          window.open(data.fork_url, '_blank');
+        } else {
+          alert("Fork error: " + (data.error || "Failed to fork repo."));
+        }
+      } catch (e) {
+        alert("Network error occurred.");
+      } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    // Discussion & Status Modal Functions
+    async function openComments(repoFullName) {
+      activeRepoForModal = repoFullName;
+      document.getElementById('modal-repo-name').textContent = repoFullName;
+      document.getElementById('comment-modal').classList.remove('hidden');
+
+      const meta = discussionsData[repoFullName] || { status: 'dormant', revived_url: '' };
+      document.getElementById('modal-status-select').value = meta.status || 'dormant';
+      document.getElementById('modal-revived-url').value = meta.revived_url || '';
+
+      const hint = document.getElementById('comment-user-hint');
+      hint.textContent = currentUser ? `Posting as @${currentUser}` : "Login to post a comment";
+
+      renderModalComments();
+    }
+
+    function renderModalComments() {
+      const meta = discussionsData[activeRepoForModal] || { comments: [] };
+      const list = document.getElementById('comments-list');
+      const comments = meta.comments || [];
+
+      if (comments.length === 0) {
+        list.innerHTML = '<div class="text-center text-xs text-gray-500 py-8">No comments yet. Share your thoughts or roadmap to revive this!</div>';
+        return;
+      }
+
+      list.innerHTML = '';
+      comments.forEach(c => {
+        const el = document.createElement('div');
+        el.className = "bg-[#272729] p-3 rounded-lg border border-[#343536] flex items-start gap-2.5";
+        el.innerHTML = `
+          <!-- Comment Vote -->
+          <div class="flex flex-col items-center">
+            <button onclick="voteComment('${c.id}', 1, this)" class="text-gray-400 hover:text-orange-500 text-xs font-bold leading-none">▲</button>
+            <span class="text-[11px] font-bold text-gray-300 font-mono my-0.5">${c.votes || 0}</span>
+          </div>
+          <!-- Comment Body -->
+          <div class="flex-1 space-y-1">
+            <div class="flex items-center space-x-2">
+              <img src="${c.avatar || 'https://github.com/ghost.png'}" class="w-4 h-4 rounded-full">
+              <span class="text-xs font-bold text-white">@${c.user}</span>
+              <span class="text-[10px] text-gray-400">• ${c.time}</span>
+            </div>
+            <p class="text-xs text-gray-200 leading-relaxed">${c.text}</p>
+          </div>
+        `;
+        list.appendChild(el);
+      });
+    }
+
+    async function saveProjectStatus() {
+      if (!currentUser) {
+        alert("Please login with GitHub first to update this project's status!");
+        window.location.href = "/login";
+        return;
+      }
+
+      const status = document.getElementById('modal-status-select').value;
+      const revivedUrl = document.getElementById('modal-revived-url').value;
+
+      try {
+        const res = await fetch("/api/update-status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            repo: activeRepoForModal,
+            status: status,
+            user: currentUser,
+            revived_url: revivedUrl
+          })
+        });
+
+        if (res.ok) {
+          const resData = await res.json();
+          discussionsData[activeRepoForModal] = {
+            ...discussionsData[activeRepoForModal],
+            ...resData.data
+          };
+          render();
+          alert("Project status updated successfully!");
+        }
+      } catch (e) {
+        alert("Failed to update status.");
+      }
+    }
+
+    async function submitComment() {
+      if (!currentUser) {
+        alert("Please login with GitHub first to leave a comment!");
+        window.location.href = "/login";
+        return;
+      }
+
+      const input = document.getElementById('comment-text');
+      const text = input.value.trim();
+      if (!text) return;
+
+      try {
+        const res = await fetch("/api/comments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            repo: activeRepoForModal,
+            user: currentUser,
+            avatar: currentAvatar,
+            text: text
+          })
+        });
+
+        if (res.ok) {
+          const resData = await res.json();
+          if (!discussionsData[activeRepoForModal]) {
+            discussionsData[activeRepoForModal] = { comments: [] };
+          }
+          if (!discussionsData[activeRepoForModal].comments) {
+            discussionsData[activeRepoForModal].comments = [];
+          }
+          discussionsData[activeRepoForModal].comments.unshift(resData.comment);
+          input.value = "";
+          renderModalComments();
+          render();
+        }
+      } catch (e) {
+        alert("Failed to post comment.");
+      }
+    }
+
+    async function voteComment(commentId, delta, btn) {
+      try {
+        const res = await fetch("/api/comments/vote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            repo: activeRepoForModal,
+            comment_id: commentId,
+            delta: delta
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const span = btn.parentElement.querySelector('span');
+          span.textContent = data.votes;
+          btn.classList.add('text-orange-500');
+        }
+      } catch (e) {}
+    }
+
+    function closeModal() {
+      document.getElementById('comment-modal').classList.add('hidden');
+      activeRepoForModal = null;
+    }
+
+    init();
+  </script>
+</body>
+</html>
