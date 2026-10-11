@@ -11,7 +11,7 @@ app = FastAPI()
 
 from fastapi.responses import FileResponse
 
-@app.get("/favicon.svg")
+@app.api_route("/favicon.svg", methods=["GET", "HEAD"])
 @app.get("/favicon.ico")
 def get_favicon():
     return FileResponse("favicon.svg", media_type="image/svg+xml")
