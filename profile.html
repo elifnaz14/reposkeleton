@@ -3,68 +3,89 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Developer Profile | RepoSkeleton</title>
+  <title>Developer Profile — RepoSkeleton</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen">
-  <!-- Navbar -->
-  <nav class="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight text-white hover:text-emerald-400 transition">
-      <span>💀 RepoSkeleton</span>
-    </a>
-    <a href="/" class="text-sm font-medium text-slate-400 hover:text-white transition">
-      ← Back to Radar
-    </a>
-  </nav>
-
-  <main class="max-w-5xl mx-auto px-6 py-12">
-    <!-- Header Card -->
-    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 mb-8 flex flex-col md:flex-row items-center gap-8 shadow-xl">
-      <img id="avatar" class="w-28 h-28 rounded-full border-4 border-slate-800 bg-slate-800" src="https://github.com/ghost.png" alt="Avatar">
-      <div class="flex-1 text-center md:text-left">
-        <h1 id="user-heading" class="text-3xl font-extrabold text-white">Loading...</h1>
-        <p class="text-slate-400 mt-1 flex items-center justify-center md:justify-start gap-2">
-          <i class="fab fa-github"></i> <a id="github-link" href="#" target="_blank" class="hover:text-emerald-400 underline">View GitHub Profile</a>
-        </p>
-        
-        <!-- Stats Badges -->
-        <div class="flex flex-wrap gap-4 mt-6 justify-center md:justify-start">
-          <div class="bg-emerald-950/40 border border-emerald-800/50 px-4 py-2 rounded-xl">
-            <span class="text-xs text-emerald-400 uppercase font-semibold tracking-wider">Revived Repos</span>
-            <p id="stat-revived" class="text-2xl font-bold text-emerald-200">0</p>
-          </div>
-          <div class="bg-amber-950/40 border border-amber-800/50 px-4 py-2 rounded-xl">
-            <span class="text-xs text-amber-400 uppercase font-semibold tracking-wider">Working On (WIP)</span>
-            <p id="stat-wip" class="text-2xl font-bold text-amber-200">0</p>
-          </div>
-          <div class="bg-indigo-950/40 border border-indigo-800/50 px-4 py-2 rounded-xl">
-            <span class="text-xs text-indigo-400 uppercase font-semibold tracking-wider">Contributions</span>
-            <p id="stat-comments" class="text-2xl font-bold text-indigo-200">0</p>
-          </div>
-        </div>
-      </div>
+<body class="bg-[#0b0f17] text-slate-200 min-h-screen selection:bg-slate-800 selection:text-slate-100">
+  <!-- Top Navigation -->
+  <header class="border-b border-slate-800/80 bg-[#0b0f17]/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2.5 text-sm font-semibold tracking-tight text-white hover:text-slate-300 transition">
+        <span class="mono text-xs px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">RS</span>
+        <span>RepoSkeleton</span>
+      </a>
+      <a href="/" class="mono text-xs text-slate-400 hover:text-white transition flex items-center gap-1.5">
+        <i class="fa-solid fa-arrow-left text-[10px]"></i>
+        <span>radar_feed</span>
+      </a>
     </div>
+  </header>
 
-    <!-- Showcase Grid -->
-    <div class="space-y-8">
-      <div>
-        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <span>✨ Revived Projects Showcase</span>
-        </h2>
-        <div id="revived-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Dinamik içerik -->
+  <main class="max-w-6xl mx-auto px-6 py-10">
+    <!-- Profile Metadata Header -->
+    <section class="border border-slate-800 bg-[#0e1420] rounded-xl p-6 sm:p-8 mb-8">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div class="flex items-center gap-5">
+          <img id="avatar" class="w-20 h-20 rounded-lg border border-slate-700/80 bg-slate-900 object-cover" src="https://github.com/ghost.png" alt="Avatar">
+          <div>
+            <div class="flex items-center gap-3">
+              <h1 id="user-heading" class="text-xl font-bold tracking-tight text-white mono">@loading</h1>
+              <a id="github-link" href="#" target="_blank" class="text-xs mono text-slate-400 hover:text-slate-200 flex items-center gap-1 transition">
+                <i class="fa-brands fa-github"></i>
+                <span>github</span>
+              </a>
+            </div>
+            <p class="text-xs text-slate-400 mt-1 mono">Status Registry & Contribution Index</p>
+          </div>
+        </div>
+
+        <!-- Metric Badges -->
+        <div class="grid grid-cols-3 gap-3 w-full sm:w-auto">
+          <div class="border border-slate-800 bg-[#090d14] px-4 py-3 rounded-lg min-w-[100px]">
+            <span class="mono text-[10px] tracking-wider uppercase text-slate-400 block">Revived</span>
+            <span id="stat-revived" class="mono text-lg font-bold text-slate-100">0</span>
+          </div>
+          <div class="border border-slate-800 bg-[#090d14] px-4 py-3 rounded-lg min-w-[100px]">
+            <span class="mono text-[10px] tracking-wider uppercase text-slate-400 block">In Progress</span>
+            <span id="stat-wip" class="mono text-lg font-bold text-slate-100">0</span>
+          </div>
+          <div class="border border-slate-800 bg-[#090d14] px-4 py-3 rounded-lg min-w-[100px]">
+            <span class="mono text-[10px] tracking-wider uppercase text-slate-400 block">Notes</span>
+            <span id="stat-comments" class="mono text-lg font-bold text-slate-100">0</span>
+          </div>
         </div>
       </div>
+    </section>
 
-      <div>
-        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <span>🛠 Currently Working On (WIP)</span>
-        </h2>
-        <div id="wip-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Dinamik içerik -->
+    <!-- Project Listings -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Revived Panel -->
+      <section class="border border-slate-800 bg-[#0e1420] rounded-xl p-6">
+        <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800/80">
+          <span class="mono text-xs font-semibold uppercase tracking-wider text-slate-300">Revived Deployments</span>
+          <span class="mono text-[11px] text-slate-500">production_forks</span>
         </div>
-      </div>
+        <div id="revived-list" class="space-y-3">
+          <!-- Dynamic -->
+        </div>
+      </section>
+
+      <!-- WIP Panel -->
+      <section class="border border-slate-800 bg-[#0e1420] rounded-xl p-6">
+        <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800/80">
+          <span class="mono text-xs font-semibold uppercase tracking-wider text-slate-300">Claimed & In Progress</span>
+          <span class="mono text-[11px] text-slate-500">active_work</span>
+        </div>
+        <div id="wip-list" class="space-y-3">
+          <!-- Dynamic -->
+        </div>
+      </section>
     </div>
   </main>
 
@@ -82,33 +103,49 @@
         document.getElementById("stat-comments").innerText = data.total_comments;
 
         const revivedBox = document.getElementById("revived-list");
-        if (data.revived_repos.length === 0) {
-          revivedBox.innerHTML = `<p class="text-slate-500 italic col-span-2">No projects revived yet.</p>`;
+        if (!data.revived_repos || data.revived_repos.length === 0) {
+          revivedBox.innerHTML = `
+            <div class="border border-dashed border-slate-800 rounded-lg p-6 text-center">
+              <span class="mono text-xs text-slate-500">No projects marked as revived yet.</span>
+            </div>
+          `;
         } else {
           revivedBox.innerHTML = data.revived_repos.map(r => `
-            <div class="bg-slate-900 border border-emerald-900/40 rounded-xl p-5 hover:border-emerald-600 transition">
-              <div class="flex justify-between items-start mb-2">
-                <span class="font-bold text-emerald-400">${r.repo}</span>
-                <span class="text-xs bg-emerald-900/60 text-emerald-300 px-2 py-0.5 rounded">REVIVED</span>
+            <div class="border border-slate-800 bg-[#090d14] rounded-lg p-4 hover:border-slate-700 transition">
+              <div class="flex items-start justify-between gap-3">
+                <span class="mono text-xs font-semibold text-slate-200 truncate">${r.repo}</span>
+                <span class="mono text-[10px] px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 shrink-0">REVIVED</span>
               </div>
-              ${r.revived_url ? `<a href="${r.revived_url}" target="_blank" class="text-xs text-slate-300 hover:text-white underline flex items-center gap-1 mt-2"><i class="fas fa-external-link-alt"></i> ${r.revived_url}</a>` : ''}
+              ${r.revived_url ? `
+                <a href="${r.revived_url}" target="_blank" class="mt-2.5 mono text-[11px] text-slate-400 hover:text-white flex items-center gap-1.5 transition">
+                  <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                  <span class="truncate">${r.revived_url}</span>
+                </a>
+              ` : ''}
             </div>
           `).join('');
         }
 
         const wipBox = document.getElementById("wip-list");
-        if (data.wip_repos.length === 0) {
-          wipBox.innerHTML = `<p class="text-slate-500 italic col-span-2">No active projects right now.</p>`;
+        if (!data.wip_repos || data.wip_repos.length === 0) {
+          wipBox.innerHTML = `
+            <div class="border border-dashed border-slate-800 rounded-lg p-6 text-center">
+              <span class="mono text-xs text-slate-500">No repositories currently claimed.</span>
+            </div>
+          `;
         } else {
           wipBox.innerHTML = data.wip_repos.map(r => `
-            <div class="bg-slate-900 border border-amber-900/40 rounded-xl p-5 hover:border-amber-600 transition">
-              <div class="flex justify-between items-start mb-2">
-                <span class="font-bold text-amber-400">${r.repo}</span>
-                <span class="text-xs bg-amber-900/60 text-amber-300 px-2 py-0.5 rounded">WIP</span>
+            <div class="border border-slate-800 bg-[#090d14] rounded-lg p-4 hover:border-slate-700 transition">
+              <div class="flex items-start justify-between gap-3">
+                <span class="mono text-xs font-semibold text-slate-200 truncate">${r.repo}</span>
+                <span class="mono text-[10px] px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400 shrink-0">WIP</span>
               </div>
             </div>
           `).join('');
         }
+      })
+      .catch(() => {
+        document.getElementById("user-heading").innerText = `@${username}`;
       });
   </script>
 </body>
