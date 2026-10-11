@@ -496,3 +496,25 @@ async def get_repo_badge(owner: str, repo_name: str):
       </g>
     </svg>"""
     return Response(content=svg, media_type="image/svg+xml", headers={"Cache-Control": "max-age=60"})
+
+
+from fastapi.responses import PlainTextResponse
+
+@app.get("/robots.txt", response_class=PlainTextResponse)
+async def robots_txt():
+    return """User-agent: *
+Allow: /
+Sitemap: https://reposkeleton-app-e8a5aa87d70f.herokuapp.com/sitemap.xml
+"""
+
+@app.get("/sitemap.xml")
+async def sitemap_xml():
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://reposkeleton-app-e8a5aa87d70f.herokuapp.com/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>"""
+    return Response(content=xml, media_type="application/xml")
