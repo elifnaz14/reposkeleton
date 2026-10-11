@@ -153,6 +153,60 @@
   </div>
 
   <script>
+
+    // Custom Toast Notification System
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto flex items-center max-w-sm px-4 py-3 rounded-lg shadow-2xl border text-xs font-medium transition-all duration-300 transform translate-y-3 opacity-0`;
+
+      // Temaya uygun renk paleti
+      let borderCol = "border-gray-700 bg-[#161b22] text-gray-200";
+      let icon = "🔔";
+
+      const lower = message.toLowerCase();
+      if (type === 'success' || lower.includes('success')) {
+        borderCol = "border-orange-500/50 bg-[#1c1917] text-orange-200 shadow-orange-950/20";
+        icon = "🚀";
+      } else if (type === 'error' || lower.includes('error') || lower.includes('failed')) {
+        borderCol = "border-rose-500/50 bg-[#1f1315] text-rose-200 shadow-rose-950/20";
+        icon = "⚠️";
+      }
+
+      toast.className += ` ${borderCol}`;
+
+      // URL varsa tıklanabilir link yap
+      const formattedMessage = message.replace(
+        /(https?:\/\/[^\s]+)/g,
+        '<a href="$1" target="_blank" class="underline text-orange-400 hover:text-orange-300 break-all block mt-1">$1</a>'
+      ).replace(/\n/g, '<br/>');
+
+      toast.innerHTML = `
+        <span class="text-base mr-2.5 flex-shrink-0">${icon}</span>
+        <div class="flex-1">${formattedMessage}</div>
+      `;
+
+      container.appendChild(toast);
+
+      // Slide-up animasyonu
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-3', 'opacity-0');
+      });
+
+      // 3.5 saniye sonra kaybol
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // Varsayılan alert'leri doğrudan custom toast'a yönlendir
+    window.alert = function(msg) {
+      showToast(msg);
+    };
+
     let rawRepos = [];
     let filteredRepos = [];
     let discussionsData = {};
@@ -612,5 +666,8 @@
 
     init();
   </script>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-3 pointer-events-none"></div>
 </body>
 </html>
