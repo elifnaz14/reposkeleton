@@ -55,7 +55,27 @@
       <div id="auth-container-desktop" class="hidden md:flex items-center space-x-3"></div>
 
     </div>
+    <button onclick="openCommunityModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-200 bg-[#272729] hover:bg-[#343536] border border-[#343536] rounded-md transition-colors ml-2">
+          <i class="fa-solid fa-users text-orange-500"></i>
+          <span>Community</span>
+        </button>
   </header>
+  <!-- Community Modal -->
+  <div id="community-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#1a1a1b] border border-[#343536] rounded-xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl">
+      <div class="px-5 py-4 border-b border-[#343536] flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-users text-orange-500 text-lg"></i>
+          <h2 class="text-base font-bold text-white">Active Community & Revivers</h2>
+        </div>
+        <button onclick="closeCommunityModal()" class="text-gray-400 hover:text-white text-lg px-2">&times;</button>
+      </div>
+      <div id="community-users-list" class="p-5 overflow-y-auto space-y-3 flex-1">
+        <p class="text-xs text-gray-400 text-center py-4">Loading active developers...</p>
+      </div>
+    </div>
+  </div>
+
 
   <!-- Filter & Controls -->
   <section class="max-w-5xl mx-auto px-3 sm:px-4 pt-4">

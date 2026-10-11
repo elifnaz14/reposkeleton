@@ -365,3 +365,36 @@ def fork_repository(owner: str, repo: str, request_data: dict = Body(...)):
             "error": res.json().get("message", "GitHub Fork API error"),
             "status_code": res.status_code
         }
+
+
+@app.get("/api/users")
+def get_all_users():
+    data = load_data()
+    users_map = {}
+    for repo, info in data.items():
+        claimants = []
+        if info.get("claimed_by"):
+            claimants.append(info["claimed_by"])
+        for r in info.get("revivers", []):
+            if isinstance(r, dict) and r.get("user"):
+                claimants.append(r["user"])
+            elif isinstance(r, str):
+                claimants.append(r)
+
+        status = info.get("status", "dormant")
+        for u in claimants:
+            if u not in users_map:
+                users_map[u] = {"username": u, "revived": 0, "wip": 0, "comments": 0}
+            if status == "revived":
+                users_map[u]["revived"] += 1
+            else:
+                users_map[u]["wip"] += 1
+
+        for c in info.get("comments", []):
+            if isinstance(c, dict) and c.get("user"):
+                u = c["user"]
+                if u not in users_map:
+                    users_map[u] = {"username": u, "revived": 0, "wip": 0, "comments": 0}
+                users_map[u]["comments"] += 1
+
+    return list(users_map.values())
