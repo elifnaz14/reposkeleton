@@ -159,7 +159,11 @@ async def update_status(request: Request):
     payload = await request.json()
     repo = payload.get("repo")
     status = payload.get("status") # dormant, wip, revived
-    user = payload.get("user")
+    raw_user = payload.get("user") or payload.get("username")
+    if isinstance(raw_user, dict):
+        user = raw_user.get("login") or raw_user.get("username")
+    else:
+        user = str(raw_user).strip() if raw_user else None
     revived_url = payload.get("revived_url", "").strip()
 
     if not repo or not status or not user:
@@ -258,12 +262,16 @@ def get_user_profile(username: str):
         revived_url = data.get("revived_url")
 
         if isinstance(raw_status, dict):
-            claimed_by = raw_status.get("updated_by") or raw_status.get("claimed_by")
+            claimed_by = raw_status.get("updated_by") or raw_status.get("claimed_by") or raw_status.get("user")
             state = (raw_status.get("state") or raw_status.get("status") or "").lower()
             revived_url = raw_status.get("revived_url") or revived_url
         elif isinstance(raw_status, str):
             state = raw_status.lower()
-            claimed_by = data.get("claimed_by")
+            claimed_by = data.get("claimed_by") or data.get("user") or data.get("username")
+
+        # claimed_by dict ise login'i al
+        if isinstance(claimed_by, dict):
+            claimed_by = claimed_by.get("login") or claimed_by.get("username")
 
         if claimed_by and claimed_by.lower() == u_lower:
             repo_entry = {
