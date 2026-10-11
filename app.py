@@ -442,3 +442,16 @@ async def vote_comment_endpoint(payload: dict):
         save_discussions()
         return {"status": "success"}
     return {"status": "error", "message": "Repo not found"}
+
+
+from fastapi.responses import FileResponse
+
+@app.get("/favicon.svg")
+async def favicon_svg():
+    return FileResponse("favicon.svg", media_type="image/svg+xml", headers={"Cache-Control": "no-cache, must-revalidate"})
+
+@app.get("/favicon.ico")
+async def favicon_ico():
+    if os.path.exists("favicon.ico"):
+        return FileResponse("favicon.ico", media_type="image/x-icon", headers={"Cache-Control": "no-cache, must-revalidate"})
+    return FileResponse("favicon.svg", media_type="image/svg+xml", headers={"Cache-Control": "no-cache, must-revalidate"})
