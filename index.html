@@ -516,6 +516,52 @@
       }
 
       const status = document.getElementById('modal-status-select').value;
+      let revivedUrl = document.getElementById('modal-revived-url').value;
+
+      if (status === "WIP" && !revivedUrl && typeof currentToken !== "undefined" && currentToken) {
+        try {
+          const forkRes = await fetch(`/api/fork/${activeRepoForModal}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: currentToken })
+          });
+          const forkData = await forkRes.json();
+          if (forkData.success && forkData.html_url) {
+            revivedUrl = forkData.html_url;
+            window.open(forkData.html_url, "_blank");
+          }
+        } catch (forkErr) {
+          console.error("Fork automation failed:", forkErr);
+        }
+      }
+
+      try {
+        const res = await fetch("/api/update-status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            repo: activeRepoForModal,
+            status: status,
+            user: currentUser,
+            revived_url: revivedUrl
+          })
+        });
+
+        if (res.ok) {
+          const resData = await res.json();
+          discussionsData[activeRepoForModal] = {
+            ...discussionsData[activeRepoForModal],
+            ...resData.data
+          };
+          render();
+          alert("Project status updated successfully!");
+        }
+      } catch (e) {
+        alert("Failed to update status.");
+      }
+    }
+
+      const status = document.getElementById('modal-status-select').value;
       const revivedUrl = document.getElementById('modal-revived-url').value;
 
       try {
