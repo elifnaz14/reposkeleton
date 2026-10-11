@@ -121,7 +121,7 @@
   </main>
 
   <!-- Reddit-Style Discussion / Comments Drawer Modal -->
-  <div id="comment-modal" class="fixed inset-0 bg-black/75 z-50 hidden flex justify-end transition-opacity">
+  <div id="comment-modal" class="fixed inset-0 bg-black/75 z-50 hidden flex justify-end transition-opacity" onclick="if(event.target === this) closeModal()">
     <div class="w-full max-w-lg bg-[#1a1a1b] h-full flex flex-col border-l border-[#2a3236] shadow-2xl">
       
       <!-- Drawer Header -->
@@ -710,6 +710,17 @@
         }
       } catch (e) {}
     }
+
+    
+    // Close discussion drawer on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('comment-modal');
+        if (modal && !modal.classList.contains('hidden')) {
+          closeModal();
+        }
+      }
+    });
 
     function closeModal() {
       document.getElementById('comment-modal').classList.add('hidden');
