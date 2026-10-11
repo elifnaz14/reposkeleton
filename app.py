@@ -146,7 +146,7 @@ async def fork_repo(request: Request):
         all_data = load_data()
         repo_data = normalize_repo_data(all_data.get(repo, {"status": "dormant", "claimed_by": None, "revived_url": None, "comments": []}))
         
-        # Kullanıcı zaten revivers listesinde yoksa ekle
+        # Append user to revivers if not present
         if not any(r.get("user") == user for r in repo_data["revivers"]):
             repo_data["revivers"].append({"user": user, "fork_url": fork_url})
         
@@ -179,7 +179,7 @@ async def update_status(request: Request):
     repo_data = normalize_repo_data(all_data.get(repo, {"status": "dormant", "claimed_by": None, "revived_url": None, "comments": []}))
 
     if status == "dormant":
-        # Biri dormant dediğinde sadece o kullanıcı listeden çıkar
+        # Remove user from revivers when marked dormant
         repo_data["revivers"] = [r for r in repo_data["revivers"] if r.get("user") != user]
         if len(repo_data["revivers"]) == 0:
             repo_data["status"] = "dormant"
@@ -272,7 +272,7 @@ from fastapi.responses import HTMLResponse
 
 @app.get("/api/user/{username}")
 def get_user_profile(username: str):
-    """Kullanıcının durum güncellemelerini, sahiplendiği projeleri ve yorumlarını çeker."""
+    """Fetch user contribution status, claimed projects, and discussions."""
     discussions = load_data()
     
     revived_repos = []
@@ -331,7 +331,7 @@ def get_user_profile(username: str):
 
 @app.get("/u/{username}", response_class=HTMLResponse)
 def user_profile_page(username: str):
-    """Profil sayfası arayüzü"""
+    """Developer profile interface"""
     with open("profile.html", "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read())
 
@@ -348,7 +348,7 @@ def fork_repository(owner: str, repo: str, request_data: dict = Body(...)):
         "X-GitHub-Api-Version": "2022-11-28"
     }
     
-    # GitHub Fork API çağrısı
+    # Trigger GitHub Fork API call
     url = f"https://api.github.com/repos/{owner}/{repo}/forks"
     res = requests.post(url, headers=headers)
     

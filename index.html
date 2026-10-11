@@ -524,7 +524,7 @@
 
         if (data.success) {
           alert(`Success! Repository successfully forked to your account:\n${data.fork_url}`);
-          // Yerel veriyi güncelle ve anında render et
+          // Update local state and trigger immediate render
           if (!discussionsData[repoFullName]) discussionsData[repoFullName] = { status: 'wip', comments: [] };
           discussionsData[repoFullName].status = 'wip';
           discussionsData[repoFullName].claimed_by = currentUser;
@@ -561,7 +561,7 @@
     
     function formatMentions(text) {
       if (!text) return '';
-      // HTML kaçışını basitçe koruyup @username olanları linkle
+      // Parse and hyperlink @username mentions
       return text.replace(/@([a-zA-Z0-9_\-]+)/g, '<a href="/u/$1" class="text-orange-400 hover:underline font-semibold">@$1</a>');
     }
 

@@ -29,25 +29,25 @@
     </header>
 
     <main class="max-w-4xl mx-auto w-full px-4 py-10 flex-1">
-        <!-- Profil Başlık Kartı -->
+        <!-- Profile Header Card -->
         <div class="bg-card border border-subtle rounded-xl p-6 mb-8 flex flex-col sm:flex-row items-center sm:items-start gap-6">
             <img id="user-avatar" src="https://github.com/ghost.png" alt="Avatar" class="w-24 h-24 rounded-full border border-subtle bg-[#0d1117]">
             <div class="flex-1 text-center sm:text-left">
                 <div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
                     <div>
-                        <h1 id="user-name" class="text-2xl font-bold text-white">Yükleniyor...</h1>
+                        <h1 id="user-name" class="text-2xl font-bold text-white">Loading...</h1>
                         <p id="user-handle" class="text-gray-400 text-sm">@...</p>
                     </div>
                     <a id="github-link" href="#" target="_blank" class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#21262d] hover:bg-[#30363d] text-white text-sm font-medium rounded-lg border border-subtle transition">
-                        <i class="fa-brands fa-github"></i> GitHub Profilinde Gör
+                        <i class="fa-brands fa-github"></i> View GitHub Profile
                     </a>
                 </div>
 
-                <!-- İstatistikler -->
+                <!-- Statistics -->
                 <div class="flex items-center justify-center sm:justify-start gap-6 mt-6 border-t border-subtle pt-4 text-sm">
                     <div>
                         <span id="stat-revived" class="font-bold text-white text-lg block">0</span>
-                        <span class="text-gray-400 text-xs">Canlandırılan (Revived)</span>
+                        <span class="text-gray-400 text-xs">Revived</span>
                     </div>
                     <div class="w-px h-8 bg-[#30363d]"></div>
                     <div>
@@ -57,26 +57,26 @@
                     <div class="w-px h-8 bg-[#30363d]"></div>
                     <div>
                         <span id="stat-comments" class="font-bold text-white text-lg block">0</span>
-                        <span class="text-gray-400 text-xs">Yorum & Tartışma</span>
+                        <span class="text-gray-400 text-xs">Comments & Discussions</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Projeler & Katkılar -->
+        <!-- Projects & Contributions -->
         <div class="space-y-6">
             <h2 class="text-lg font-semibold text-white flex items-center gap-2">
-                <i class="fa-solid fa-code-fork text-accent"></i> Projeler & Katkılar
+                <i class="fa-solid fa-code-fork text-accent"></i> Projects & Contributions
             </h2>
             <div id="repos-container" class="grid gap-4 sm:grid-cols-2">
-                <div class="col-span-2 text-center text-gray-500 py-8">Projeler aranıyor...</div>
+                <div class="col-span-2 text-center text-gray-500 py-8">Loading projects...</div>
             </div>
 
             <h2 class="text-lg font-semibold text-white flex items-center gap-2 mt-8">
-                <i class="fa-regular fa-comments text-accent"></i> Tartışma Yorumları
+                <i class="fa-regular fa-comments text-accent"></i> Discussion Comments
             </h2>
             <div id="comments-container" class="space-y-3">
-                <div class="text-center text-gray-500 py-6">Henüz bir yorum yok.</div>
+                <div class="text-center text-gray-500 py-6">No comments yet.</div>
             </div>
         </div>
     </main>
@@ -86,12 +86,12 @@
     </footer>
 
     <script>
-        // 1. Kullanıcı adını URL parametresinden veya path'ten al
+        // 1. Extract username from URL params or path
         const urlParams = new URLSearchParams(window.location.search);
         let username = urlParams.get('user');
 
         if (!username) {
-            // /profile/elifnaz14 gibi path kontrolü
+            // Check path format like /profile/username
             const pathSegments = window.location.pathname.split('/').filter(Boolean);
             if (pathSegments.length > 0 && pathSegments[pathSegments.length - 1] !== 'profile.html' && pathSegments[pathSegments.length - 1] !== 'profile') {
                 username = pathSegments[pathSegments.length - 1];
@@ -111,15 +111,15 @@
         }
 
         if (!username) {
-            document.getElementById('user-name').innerText = "Kullanıcı Belirtilmedi";
+            document.getElementById('user-name').innerText = "User Not Specified";
             document.getElementById('user-handle').innerText = "URL'de ?user=kullanici_adi ekleyin.";
         } else {
-            // Büyük/küçük harf duyarlılığını önlemek için trim
+            // Trim string to normalize whitespace
             username = username.trim();
 
             fetch(`/api/user/${encodeURIComponent(username)}`)
                 .then(r => {
-                    if (!r.ok) throw new Error("Kullanıcı bulunamadı");
+                    if (!r.ok) throw new Error("User not found");
                     return r.json();
                 })
                 .then(data => {
@@ -129,7 +129,7 @@
                     document.getElementById('user-avatar').src = `https://github.com/${uname}.png`;
                     document.getElementById('github-link').href = `https://github.com/${uname}`;
 
-                    // API alanlarını hem düz hem stats objesi formatında destekleyelim
+                    // Support both raw fields and stats object format
                     const revivedCount = data.revived_count ?? (data.stats ? data.stats.revived_count : 0);
                     const wipCount = data.wip_count ?? (data.stats ? data.stats.wip_count : 0);
                     const commentCount = data.total_comments ?? (data.stats ? data.stats.comment_count : (data.comments ? data.comments.length : 0));
@@ -138,7 +138,7 @@
                     document.getElementById('stat-wip').innerText = wipCount;
                     document.getElementById('stat-comments').innerText = commentCount;
 
-                    // Repoları birleştir (hem tekil repos listesi hem wip_repos/revived_repos formatını destekler)
+                    // Merge repositories from all supported schema formats
                     let repos = [];
                     if (Array.isArray(data.repos)) {
                         repos = data.repos;
@@ -149,7 +149,7 @@
 
                     const repoBox = document.getElementById('repos-container');
                     if (repos.length === 0) {
-                        repoBox.innerHTML = '<div class="col-span-2 bg-card border border-subtle rounded-xl p-6 text-center text-gray-400">Bu kullanıcı henüz bir repoyu canlandırma sürecine katılmadı.</div>';
+                        repoBox.innerHTML = '<div class="col-span-2 bg-card border border-subtle rounded-xl p-6 text-center text-gray-400">This developer has not claimed or revived any repository yet.</div>';
                     } else {
                         repoBox.innerHTML = repos.map(r => {
                             const repoTitle = r.repo || r.name;
@@ -167,7 +167,7 @@
                                         <h3 class="font-bold text-white text-base truncate" title="${repoTitle}">${repoTitle}</h3>
                                     </div>
                                     <div class="mt-4 pt-3 border-t border-subtle flex justify-between items-center text-xs">
-                                        <a href="/?search=${encodeURIComponent(repoTitle)}" class="text-accent hover:underline">Repoyu İncele &rarr;</a>
+                                        <a href="/?search=${encodeURIComponent(repoTitle)}" class="text-accent hover:underline">View Repository &rarr;</a>
                                         ${forkUrl ? `<a href="${forkUrl}" target="_blank" class="text-gray-400 hover:text-white"><i class="fa-solid fa-external-link"></i> Fork URL</a>` : ''}
                                     </div>
                                 </div>
@@ -175,11 +175,11 @@
                         }).join('');
                     }
 
-                    // Yorumları Listele
+                    // Render comments list
                     const commBox = document.getElementById('comments-container');
                     const comments = Array.isArray(data.comments) ? data.comments : [];
                     if (comments.length === 0) {
-                        commBox.innerHTML = '<div class="bg-card border border-subtle rounded-xl p-6 text-center text-gray-400">Bu kullanıcının henüz bir tartışma yorumu bulunmuyor.</div>';
+                        commBox.innerHTML = '<div class="bg-card border border-subtle rounded-xl p-6 text-center text-gray-400">No discussion comments found for this developer.</div>';
                     } else {
                         commBox.innerHTML = comments.map(c => {
                             const repoName = c.repo || '';
@@ -198,9 +198,9 @@
                 })
                 .catch(err => {
                     console.error(err);
-                    document.getElementById('user-name').innerText = "Kullanıcı Bulunamadı";
+                    document.getElementById('user-name').innerText = "User Not Found";
                     document.getElementById('user-handle').innerText = `@${username}`;
-                    document.getElementById('repos-container').innerHTML = '<div class="col-span-2 text-center text-red-400 py-6">Kullanıcı profili yüklenirken bir hata oluştu veya kullanıcı mevcut değil.</div>';
+                    document.getElementById('repos-container').innerHTML = '<div class="col-span-2 text-center text-red-400 py-6">Failed to load developer profile or user does not exist.</div>';
                 });
         }
     </script>
