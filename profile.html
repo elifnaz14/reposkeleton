@@ -17,14 +17,14 @@
       .badge-revived { background: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid rgba(46, 160, 67, 0.4); }
     </style>
 </head>
-<body class="min-vh-100 flex flex-col justify-between">
+<body class="min-h-screen flex flex-col justify-between">
     <header class="border-b border-subtle bg-[#161b22] px-6 py-4 flex items-center justify-between sticky top-0 z-50">
         <a href="/" class="flex items-center gap-3 text-lg font-bold text-white hover:text-[#58a6ff] transition">
             <img src="/favicon.svg" alt="Logo" class="w-7 h-7">
             <span>RepoSkeleton</span>
         </a>
         <a href="/" class="text-sm text-gray-400 hover:text-white transition flex items-center gap-2">
-            <i class="fa-solid fa-arrow-left"></i> Geri Dön
+            <i class="fa-solid fa-arrow-left"></i> Ana Sayfa
         </a>
     </header>
 
@@ -57,13 +57,13 @@
                     <div class="w-px h-8 bg-[#30363d]"></div>
                     <div>
                         <span id="stat-comments" class="font-bold text-white text-lg block">0</span>
-                        <span class="text-gray-400 text-xs">Tartışma & Yorum</span>
+                        <span class="text-gray-400 text-xs">Yorum & Tartışma</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Sekmeler -->
+        <!-- Projeler & Katkılar -->
         <div class="space-y-6">
             <h2 class="text-lg font-semibold text-white flex items-center gap-2">
                 <i class="fa-solid fa-code-fork text-accent"></i> Projeler & Katkılar
@@ -73,7 +73,7 @@
             </div>
 
             <h2 class="text-lg font-semibold text-white flex items-center gap-2 mt-8">
-                <i class="fa-regular fa-comments text-accent"></i> Son Topluluk Yorumları
+                <i class="fa-regular fa-comments text-accent"></i> Tartışma Yorumları
             </h2>
             <div id="comments-container" class="space-y-3">
                 <div class="text-center text-gray-500 py-6">Henüz bir yorum yok.</div>
@@ -86,11 +86,19 @@
     </footer>
 
     <script>
+        // 1. Kullanıcı adını URL parametresinden veya path'ten al
         const urlParams = new URLSearchParams(window.location.search);
         let username = urlParams.get('user');
 
         if (!username) {
-            // URL'de parametre yoksa oturumdaki kullanıcıya bak
+            // /profile/elifnaz14 gibi path kontrolü
+            const pathSegments = window.location.pathname.split('/').filter(Boolean);
+            if (pathSegments.length > 0 && pathSegments[pathSegments.length - 1] !== 'profile.html' && pathSegments[pathSegments.length - 1] !== 'profile') {
+                username = pathSegments[pathSegments.length - 1];
+            }
+        }
+
+        if (!username) {
             const storedUser = localStorage.getItem('user');
             if (storedUser) {
                 try {
@@ -103,64 +111,96 @@
         }
 
         if (!username) {
-            document.getElementById('user-name').innerText = "Kullanıcı Bulunamadı";
-            document.getElementById('user-handle').innerText = "Lütfen bir kullanıcı belirtin.";
+            document.getElementById('user-name').innerText = "Kullanıcı Belirtilmedi";
+            document.getElementById('user-handle').innerText = "URL'de ?user=kullanici_adi ekleyin.";
         } else {
-            fetch(`/api/user/${username}`)
-                .then(r => r.json())
+            // Büyük/küçük harf duyarlılığını önlemek için trim
+            username = username.trim();
+
+            fetch(`/api/user/${encodeURIComponent(username)}`)
+                .then(r => {
+                    if (!r.ok) throw new Error("Kullanıcı bulunamadı");
+                    return r.json();
+                })
                 .then(data => {
-                    document.getElementById('user-name').innerText = data.username;
-                    document.getElementById('user-handle').innerText = `@${data.username}`;
-                    document.getElementById('user-avatar').src = `https://github.com/${data.username}.png`;
-                    document.getElementById('github-link').href = `https://github.com/${data.username}`;
+                    const uname = data.username || username;
+                    document.getElementById('user-name').innerText = uname;
+                    document.getElementById('user-handle').innerText = `@${uname}`;
+                    document.getElementById('user-avatar').src = `https://github.com/${uname}.png`;
+                    document.getElementById('github-link').href = `https://github.com/${uname}`;
 
-                    document.getElementById('stat-revived').innerText = data.stats.revived_count;
-                    document.getElementById('stat-wip').innerText = data.stats.wip_count;
-                    document.getElementById('stat-comments').innerText = data.stats.comment_count;
+                    // API alanlarını hem düz hem stats objesi formatında destekleyelim
+                    const revivedCount = data.revived_count ?? (data.stats ? data.stats.revived_count : 0);
+                    const wipCount = data.wip_count ?? (data.stats ? data.stats.wip_count : 0);
+                    const commentCount = data.total_comments ?? (data.stats ? data.stats.comment_count : (data.comments ? data.comments.length : 0));
 
-                    // Repoları Render Et
-                    const repoBox = document.getElementById('repos-container');
-                    const allRepos = [...data.revived_repos, ...data.wip_repos];
-                    if (allRepos.length === 0) {
-                        repoBox.innerHTML = '<div class="col-span-2 bg-card border border-subtle rounded-xl p-6 text-center text-gray-400">Bu kullanıcı henüz bir repoyu canlandırma sürecine katılmadı.</div>';
+                    document.getElementById('stat-revived').innerText = revivedCount;
+                    document.getElementById('stat-wip').innerText = wipCount;
+                    document.getElementById('stat-comments').innerText = commentCount;
+
+                    // Repoları birleştir (hem tekil repos listesi hem wip_repos/revived_repos formatını destekler)
+                    let repos = [];
+                    if (Array.isArray(data.repos)) {
+                        repos = data.repos;
                     } else {
-                        repoBox.innerHTML = allRepos.map(r => `
-                            <div class="bg-card border border-subtle p-4 rounded-xl flex flex-col justify-between">
-                                <div>
-                                    <div class="flex items-center justify-between mb-2">
-                                        <span class="text-xs px-2.5 py-0.5 rounded-full font-medium ${r.status === 'revived' ? 'badge-revived' : 'badge-wip'}">
-                                            ${r.status === 'revived' ? 'Revived 🎉' : 'In Progress ⏳'}
-                                        </span>
-                                    </div>
-                                    <h3 class="font-bold text-white text-base truncate">${r.name}</h3>
-                                </div>
-                                <div class="mt-4 pt-3 border-t border-subtle flex justify-between items-center text-xs">
-                                    <a href="/?search=${encodeURIComponent(r.name)}" class="text-accent hover:underline">Repoyu İncele &rarr;</a>
-                                    ${r.revived_url ? `<a href="${r.revived_url}" target="_blank" class="text-gray-400 hover:text-white"><i class="fa-solid fa-external-link"></i> Fork URL</a>` : ''}
-                                </div>
-                            </div>
-                        `).join('');
+                        if (Array.isArray(data.revived_repos)) repos.push(...data.revived_repos);
+                        if (Array.isArray(data.wip_repos)) repos.push(...data.wip_repos);
                     }
 
-                    // Yorumları Render Et
+                    const repoBox = document.getElementById('repos-container');
+                    if (repos.length === 0) {
+                        repoBox.innerHTML = '<div class="col-span-2 bg-card border border-subtle rounded-xl p-6 text-center text-gray-400">Bu kullanıcı henüz bir repoyu canlandırma sürecine katılmadı.</div>';
+                    } else {
+                        repoBox.innerHTML = repos.map(r => {
+                            const repoTitle = r.repo || r.name;
+                            const isRevived = (r.status || '').toLowerCase() === 'revived';
+                            const forkUrl = r.revived_url;
+
+                            return `
+                                <div class="bg-card border border-subtle p-4 rounded-xl flex flex-col justify-between">
+                                    <div>
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="text-xs px-2.5 py-0.5 rounded-full font-medium ${isRevived ? 'badge-revived' : 'badge-wip'}">
+                                                ${isRevived ? 'Revived 🎉' : 'In Progress ⏳'}
+                                            </span>
+                                        </div>
+                                        <h3 class="font-bold text-white text-base truncate" title="${repoTitle}">${repoTitle}</h3>
+                                    </div>
+                                    <div class="mt-4 pt-3 border-t border-subtle flex justify-between items-center text-xs">
+                                        <a href="/?search=${encodeURIComponent(repoTitle)}" class="text-accent hover:underline">Repoyu İncele &rarr;</a>
+                                        ${forkUrl ? `<a href="${forkUrl}" target="_blank" class="text-gray-400 hover:text-white"><i class="fa-solid fa-external-link"></i> Fork URL</a>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+
+                    // Yorumları Listele
                     const commBox = document.getElementById('comments-container');
-                    if (data.comments.length === 0) {
+                    const comments = Array.isArray(data.comments) ? data.comments : [];
+                    if (comments.length === 0) {
                         commBox.innerHTML = '<div class="bg-card border border-subtle rounded-xl p-6 text-center text-gray-400">Bu kullanıcının henüz bir tartışma yorumu bulunmuyor.</div>';
                     } else {
-                        commBox.innerHTML = data.comments.map(c => `
-                            <div class="bg-card border border-subtle p-4 rounded-xl text-sm">
-                                <div class="flex items-center justify-between text-xs text-gray-400 mb-2">
-                                    <span class="font-semibold text-white">${c.repo}</span>
-                                    <span>${c.comment.time || ''}</span>
+                        commBox.innerHTML = comments.map(c => {
+                            const repoName = c.repo || '';
+                            const cText = c.text || (c.comment ? c.comment.text : '');
+                            return `
+                                <div class="bg-card border border-subtle p-4 rounded-xl text-sm">
+                                    <div class="flex items-center justify-between text-xs text-gray-400 mb-2">
+                                        <span class="font-semibold text-white">${repoName}</span>
+                                        <span>${c.created_at || c.time || ''}</span>
+                                    </div>
+                                    <p class="text-gray-300">${cText}</p>
                                 </div>
-                                <p class="text-gray-300">${c.comment.text}</p>
-                            </div>
-                        `).join('');
+                            `;
+                        }).join('');
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    document.getElementById('user-name').innerText = "Hata oluştu";
+                    document.getElementById('user-name').innerText = "Kullanıcı Bulunamadı";
+                    document.getElementById('user-handle').innerText = `@${username}`;
+                    document.getElementById('repos-container').innerHTML = '<div class="col-span-2 text-center text-red-400 py-6">Kullanıcı profili yüklenirken bir hata oluştu veya kullanıcı mevcut değil.</div>';
                 });
         }
     </script>
