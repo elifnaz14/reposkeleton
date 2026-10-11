@@ -100,6 +100,33 @@
     </section>
   </main>
 
+  <!-- Custom Release Confirmation Modal -->
+  <div id="release-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-[#161b22] border border-[#30363d] rounded-xl max-w-md w-full p-5 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+      <div class="flex items-center space-x-3 text-[#f85149]">
+        <div class="p-2 bg-[#f85149]/10 rounded-lg border border-[#f85149]/20">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </div>
+        <h3 class="text-sm font-semibold text-white mono">Release Project</h3>
+      </div>
+      
+      <p class="text-xs text-[#8b949e] leading-relaxed">
+        Are you sure you want to remove <span id="modal-repo-name" class="text-white font-semibold mono"></span> from your profile and reset its status back to <span class="text-[#e3b341] mono">Dormant</span>?
+      </p>
+
+      <div class="flex justify-end items-center space-x-2 pt-2">
+        <button id="modal-cancel-btn" class="px-3 py-1.5 rounded-lg border border-[#30363d] text-xs mono text-[#c9d1d9] hover:bg-[#21262d] transition">
+          Cancel
+        </button>
+        <button id="modal-confirm-btn" class="px-3 py-1.5 rounded-lg bg-[#b62324] hover:bg-[#da3633] text-white text-xs mono font-semibold transition flex items-center space-x-1.5">
+          <span>Release to Dormant</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const username = window.location.pathname.split("/").filter(Boolean).pop();
     const loggedInUser = localStorage.getItem('gh_user');
@@ -261,32 +288,7 @@
       });
   </script>
 
-  <!-- Custom Release Confirmation Modal -->
-  <div id="release-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-    <div class="bg-[#161b22] border border-[#30363d] rounded-xl max-w-md w-full p-5 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
-      <div class="flex items-center space-x-3 text-[#f85149]">
-        <div class="p-2 bg-[#f85149]/10 rounded-lg border border-[#f85149]/20">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        </div>
-        <h3 class="text-sm font-semibold text-white mono">Release Project</h3>
-      </div>
-      
-      <p class="text-xs text-[#8b949e] leading-relaxed">
-        Are you sure you want to remove <span id="modal-repo-name" class="text-white font-semibold mono"></span> from your profile and reset its status back to <span class="text-[#e3b341] mono">Dormant</span>?
-      </p>
-
-      <div class="flex justify-end items-center space-x-2 pt-2">
-        <button id="modal-cancel-btn" class="px-3 py-1.5 rounded-lg border border-[#30363d] text-xs mono text-[#c9d1d9] hover:bg-[#21262d] transition">
-          Cancel
-        </button>
-        <button id="modal-confirm-btn" class="px-3 py-1.5 rounded-lg bg-[#b62324] hover:bg-[#da3633] text-white text-xs mono font-semibold transition flex items-center space-x-1.5">
-          <span>Release to Dormant</span>
-        </button>
-      </div>
-    </div>
-  </div>
+  
 
 </body>
 </html>
