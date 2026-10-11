@@ -115,44 +115,52 @@ def callback(code: str):
     avatar = user_res.get("avatar_url", "")
     return RedirectResponse(f"/?token={access_token}&user={username}&avatar={avatar}")
 
+def normalize_repo_data(repo_data):
+    if "revivers" not in repo_data:
+        revivers = []
+        old_claim = repo_data.get("claimed_by")
+        old_url = repo_data.get("revived_url")
+        if old_claim:
+            revivers.append({"user": old_claim, "fork_url": old_url})
+        repo_data["revivers"] = revivers
+    return repo_data
+
 @app.post("/api/fork")
 async def fork_repo(request: Request):
-    data = await request.json()
-    token = data.get("token")
-    repo = data.get("repo")
-    user = data.get("user")
+    payload = await request.json()
+    repo = payload.get("repo")
+    token = request.session.get("token") or payload.get("token")
+    user = request.session.get("user") or payload.get("user")
 
-    if not token or not repo:
-        return JSONResponse({"error": "Missing token or repo"}, status_code=400)
+    if isinstance(user, dict):
+        user = user.get("login") or user.get("username")
 
-    res = requests.post(f"https://api.github.com/repos/{repo}/forks", headers={
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/vnd.github.v3+json"
-    })
+    if not token or not repo or not user:
+        return JSONResponse({"error": "Unauthorized or missing repo"}, status_code=400)
+
+    headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github.v3+json"}
+    res = requests.post(f"https://api.github.com/repos/{repo}/forks", headers=headers)
 
     if res.status_code in [200, 202]:
-        forked_data = res.json()
-        fork_url = forked_data.get("html_url")
-
-        # Otomatik olarak repo durumunu WIP'e çek
+        fork_url = res.json().get("html_url")
         all_data = load_data()
-        repo_data = all_data.get(repo, {"status": "dormant", "claimed_by": None, "revived_url": None, "comments": []})
+        repo_data = normalize_repo_data(all_data.get(repo, {"status": "dormant", "claimed_by": None, "revived_url": None, "comments": []}))
+        
+        # Kullanıcı zaten revivers listesinde yoksa ekle
+        if not any(r.get("user") == user for r in repo_data["revivers"]):
+            repo_data["revivers"].append({"user": user, "fork_url": fork_url})
+        
         repo_data["status"] = "wip"
-        repo_data["claimed_by"] = user
-        if not repo_data.get("revived_url"):
-            repo_data["revived_url"] = fork_url
+        repo_data["claimed_by"] = repo_data["revivers"][0]["user"] if repo_data["revivers"] else user
+        repo_data["revived_url"] = fork_url
+        
         all_data[repo] = repo_data
         save_data(all_data)
-
-        return {"success": True, "fork_url": fork_url}
+        return {"success": True, "fork_url": fork_url, "data": repo_data}
     else:
         return JSONResponse({"error": res.json().get("message", "Fork failed")}, status_code=400)
 
-@app.get("/api/discussions")
-def get_discussions():
-    return load_data()
-
-@app.post("/api/update-status")
+@app.post("/api/status")
 async def update_status(request: Request):
     payload = await request.json()
     repo = payload.get("repo")
@@ -168,12 +176,28 @@ async def update_status(request: Request):
         return JSONResponse({"error": "Invalid request"}, status_code=400)
 
     all_data = load_data()
-    repo_data = all_data.get(repo, {"status": "dormant", "claimed_by": None, "revived_url": None, "comments": []})
-    
-    repo_data["status"] = status
-    repo_data["claimed_by"] = user if status != "dormant" else None
-    if revived_url:
-        repo_data["revived_url"] = revived_url
+    repo_data = normalize_repo_data(all_data.get(repo, {"status": "dormant", "claimed_by": None, "revived_url": None, "comments": []}))
+
+    if status == "dormant":
+        # Biri dormant dediğinde sadece o kullanıcı listeden çıkar
+        repo_data["revivers"] = [r for r in repo_data["revivers"] if r.get("user") != user]
+        if len(repo_data["revivers"]) == 0:
+            repo_data["status"] = "dormant"
+            repo_data["claimed_by"] = None
+        else:
+            repo_data["status"] = "wip"
+            repo_data["claimed_by"] = repo_data["revivers"][0]["user"]
+    elif status == "wip":
+        if not any(r.get("user") == user for r in repo_data["revivers"]):
+            repo_data["revivers"].append({"user": user, "fork_url": revived_url or None})
+        repo_data["status"] = "wip"
+        repo_data["claimed_by"] = user
+    elif status == "revived":
+        if not any(r.get("user") == user for r in repo_data["revivers"]):
+            repo_data["revivers"].append({"user": user, "fork_url": revived_url or None})
+        repo_data["status"] = "revived"
+        if revived_url:
+            repo_data["revived_url"] = revived_url
 
     all_data[repo] = repo_data
     save_data(all_data)
