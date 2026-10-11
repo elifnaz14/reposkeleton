@@ -125,7 +125,7 @@
             placeholder="Revived fork or live demo URL (e.g. https://github.com/...)" 
             class="flex-1 bg-[#272729] text-xs text-gray-200 border border-[#343536] rounded px-2.5 py-1.5 focus:outline-none focus:border-orange-500 placeholder-gray-500"
           >
-          <button onclick="saveProjectStatus()" class="bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold px-3 py-1.5 rounded transition-colors whitespace-nowrap">
+          <button id="btn-fork-claim" onclick="forkAndClaimProject()" class="bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold px-3 py-1.5 rounded transition-colors whitespace-nowrap">
             Update Status
           </button>
         </div>
@@ -506,6 +506,55 @@
         `;
         list.appendChild(el);
       });
+    }
+
+    
+    async function forkAndClaimProject() {
+        window.location.href = "/login";
+        return;
+      }
+
+
+      const btn = document.getElementById('btn-fork-claim');
+      const originalText = btn ? btn.innerHTML : 'Fork & Claim';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Forking on GitHub...';
+      }
+
+      try {
+        const res = await fetch(`/api/fork/${activeRepoForModal}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: currentToken })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          // Otomatik olarak WIP yapıp fork linkini kaydet
+          await fetch(`/api/discussion/${activeRepoForModal}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user: currentUser,
+              status: 'WIP',
+              revived_url: data.html_url
+            })
+          });
+
+          window.open(data.html_url, '_blank');
+          location.reload();
+        } else {
+          alert('Fork failed: ' + (data.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Network error while forking repository.');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
+      }
     }
 
     async function saveProjectStatus() {

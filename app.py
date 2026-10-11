@@ -26,7 +26,7 @@ def save_data(data):
 
 @app.get("/login")
 def login():
-    github_auth_url = f"https://github.com/login/oauth/authorize?client_id={CLIENT_ID}&scope=read:user,public_repo"
+    github_auth_url = f"https://github.com/login/oauth/authorize?client_id={CLIENT_ID}&scope=read:user,public_repo,public_repo"
     return RedirectResponse(github_auth_url)
 
 @app.get("/callback")
@@ -224,3 +224,34 @@ def user_profile_page(username: str):
     """Profil sayfası arayüzü"""
     with open("profile.html", "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read())
+
+
+@app.post("/api/fork/{owner}/{repo}")
+def fork_repository(owner: str, repo: str, request_data: dict = Body(...)):
+    token = request_data.get("token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Authentication token required")
+    
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28"
+    }
+    
+    # GitHub Fork API çağrısı
+    url = f"https://api.github.com/repos/{owner}/{repo}/forks"
+    res = requests.post(url, headers=headers)
+    
+    if res.status_code in [200, 202]:
+        fork_data = res.json()
+        return {
+            "success": True,
+            "html_url": fork_data.get("html_url"),
+            "full_name": fork_data.get("full_name")
+        }
+    else:
+        return {
+            "success": False,
+            "error": res.json().get("message", "GitHub Fork API error"),
+            "status_code": res.status_code
+        }
