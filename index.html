@@ -2,7 +2,54 @@
 <html lang="en">
 <head>
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PV5KKBHT89"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PV5KKBHT89">
+    window.openCommunityModal = async function() {
+      const modal = document.getElementById('community-modal');
+      const list = document.getElementById('community-users-list');
+      if (!modal || !list) return;
+      
+      modal.classList.remove('hidden');
+      list.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">Loading contributors...</p>';
+
+      try {
+        const res = await fetch('/api/users');
+        const users = await res.json();
+        
+        if (!users || users.length === 0) {
+          list.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">No contributors found yet.</p>';
+          return;
+        }
+
+        list.innerHTML = users.map(u => `
+          <a href="/u/${u.username}" class="flex items-center justify-between p-3 bg-[#22272b] hover:bg-[#2c3238] border border-[#343536] rounded-lg transition group">
+            <div class="flex items-center gap-3 min-w-0">
+              <img src="https://github.com/${u.username}.png" class="w-10 h-10 rounded-full border border-[#343536] bg-[#0d1117] flex-shrink-0" alt="${u.username}">
+              <div class="min-w-0">
+                <span class="text-sm font-semibold text-white group-hover:text-orange-400 transition block truncate">${u.username}</span>
+                <div class="text-[11px] text-gray-400 flex items-center gap-2 mt-0.5">
+                  <span class="text-emerald-400 font-medium">${u.revived} Revived</span> • 
+                  <span class="text-amber-400">${u.wip} WIP</span> • 
+                  <span>${u.comments} Comments</span>
+                </div>
+              </div>
+            </div>
+            <span class="text-xs text-gray-400 group-hover:text-white px-2 py-1 rounded bg-[#1a1a1b] border border-[#343536] ml-2 flex-shrink-0">
+              View &rarr;
+            </span>
+          </a>
+        `).join('');
+      } catch (err) {
+        console.error(err);
+        list.innerHTML = '<p class="text-xs text-red-400 text-center py-6">Failed to load contributors.</p>';
+      }
+    };
+
+    window.closeCommunityModal = function() {
+      const modal = document.getElementById('community-modal');
+      if (modal) modal.classList.add('hidden');
+    };
+
+</script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
@@ -51,14 +98,19 @@
         >
       </div>
 
-      <!-- Desktop Auth Button -->
-      <div id="auth-container-desktop" class="hidden md:flex items-center space-x-3"></div>
-
-    </div>
-    <button onclick="openCommunityModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-200 bg-[#272729] hover:bg-[#343536] border border-[#343536] rounded-md transition-colors ml-2">
+      
+      <!-- Community & Auth Container -->
+      <div class="hidden md:flex items-center space-x-2">
+        <button onclick="openCommunityModal()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-200 bg-[#272729] hover:bg-[#343536] border border-[#343536] rounded-full transition-colors cursor-pointer">
           <i class="fa-solid fa-users text-orange-500"></i>
           <span>Community</span>
         </button>
+        <div id="auth-container-desktop" class="flex items-center space-x-2"></div>
+      </div>
+
+
+    </div>
+    
   </header>
   <!-- Community Modal -->
   <div id="community-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
