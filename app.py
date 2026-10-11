@@ -9,6 +9,14 @@ CLIENT_SECRET = "5ef3fc5201fd58c8d3e821de886e7c5139120ba1"
 
 app = FastAPI()
 
+from fastapi.responses import FileResponse
+
+@app.get("/favicon.svg")
+@app.get("/favicon.ico")
+def get_favicon():
+    return FileResponse("favicon.svg", media_type="image/svg+xml")
+
+
 DATA_FILE = "discussions.json"
 
 def load_data():
