@@ -130,7 +130,7 @@
           <span class="text-xs text-orange-400 font-mono uppercase tracking-wider">Project Control & Discussion</span>
           <h3 id="modal-repo-name" class="font-bold text-white text-base truncate max-w-xs"></h3>
         </div>
-        <button onclick="closeModal()" class="text-gray-400 hover:text-white text-xl font-bold px-2">✕</button>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-white text-xl font-bold px-2"></button>
       </div>
 
       <!-- Status & Revive Link Management Box -->
@@ -168,8 +168,8 @@
         <!-- Mention Dropdown -->
         <div id="mention-dropdown" class="hidden absolute bottom-[105%] left-0 w-64 bg-[#1f2328] border border-[#444c56] rounded-lg shadow-2xl z-[999] overflow-hidden text-xs">
           <div class="px-2.5 py-1.5 bg-[#161b22] border-b border-[#30363d] text-[10px] text-gray-400 font-semibold flex items-center justify-between">
-            <span>Önerilen Kullanıcılar</span>
-            <span class="text-[9px] text-gray-500">ESC ile kapat</span>
+            <span>SUGGESTED DEVELOPERS</span>
+            <span class="text-[9px] text-gray-500">ESC to dismiss</span>
           </div>
           <div id="mention-list" class="max-h-48 overflow-y-auto divide-y divide-[#30363d]/40"></div>
         </div>
@@ -435,9 +435,9 @@
         card.innerHTML = `
           <!-- Upvote Column -->
           <div class="hidden sm:flex w-11 bg-[#151718] flex-col items-center py-3 border-r border-[#22272b]">
-            <button onclick="vote(this, 1)" class="text-gray-400 hover:text-orange-500 text-xs font-bold leading-none py-1">▲</button>
+            <button onclick="vote(this, 1)" class="text-gray-400 hover:text-orange-500 text-xs font-bold leading-none py-1"></button>
             <span class="text-[11px] font-bold text-gray-200 my-1 font-mono">${repo.votes}</span>
-            <button onclick="vote(this, -1)" class="text-gray-400 hover:text-blue-500 text-xs font-bold leading-none py-1">▼</button>
+            <button onclick="vote(this, -1)" class="text-gray-400 hover:text-blue-500 text-xs font-bold leading-none py-1"></button>
           </div>
 
           <!-- Content Body -->
@@ -592,7 +592,7 @@
         el.innerHTML = `
           <!-- Comment Vote -->
           <div class="flex flex-col items-center">
-            <button onclick="voteComment('${c.id}', 1, this)" class="text-gray-400 hover:text-orange-500 text-xs font-bold leading-none">▲</button>
+            <button onclick="voteComment('${c.id}', 1, this)" class="text-gray-400 hover:text-orange-500 text-xs font-bold leading-none"></button>
             <span class="text-[11px] font-bold text-gray-300 font-mono my-0.5">${c.votes || 0}</span>
           </div>
           <!-- Comment Body -->
