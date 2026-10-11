@@ -154,58 +154,54 @@
 
   <script>
 
-    // Custom Toast Notification System
-    function showToast(message, type = 'info') {
-      const container = document.getElementById('toast-container');
+    // Custom Toast Notification System (Minimal, No Emojis)
+    function showToast(message, type = "info") {
+      const container = document.getElementById("toast-container");
       if (!container) return;
 
-      const toast = document.createElement('div');
-      toast.className = `pointer-events-auto flex items-center max-w-sm px-4 py-3 rounded-lg shadow-2xl border text-xs font-medium transition-all duration-300 transform translate-y-3 opacity-0`;
-
-      // Temaya uygun renk paleti
-      let borderCol = "border-gray-700 bg-[#161b22] text-gray-200";
-      let icon = "🔔";
+      const toast = document.createElement("div");
+      toast.className = "pointer-events-auto flex items-start max-w-sm px-4 py-3 rounded border font-mono text-[11px] leading-relaxed shadow-xl transition-all duration-200 transform translate-y-2 opacity-0";
 
       const lower = message.toLowerCase();
-      if (type === 'success' || lower.includes('success')) {
-        borderCol = "border-orange-500/50 bg-[#1c1917] text-orange-200 shadow-orange-950/20";
-        icon = "🚀";
-      } else if (type === 'error' || lower.includes('error') || lower.includes('failed')) {
-        borderCol = "border-rose-500/50 bg-[#1f1315] text-rose-200 shadow-rose-950/20";
-        icon = "⚠️";
+      let borderStyle = "border-neutral-700 bg-[#161618] text-neutral-300";
+      let dotColor = "bg-neutral-400";
+
+      if (type === "success" || lower.includes("success")) {
+        borderStyle = "border-orange-500/40 bg-[#181513] text-orange-200";
+        dotColor = "bg-orange-500";
+      } else if (type === "error" || lower.includes("error") || lower.includes("failed")) {
+        borderStyle = "border-rose-500/40 bg-[#1a1415] text-rose-200";
+        dotColor = "bg-rose-500";
       }
 
-      toast.className += ` ${borderCol}`;
+      toast.className += " " + borderStyle;
 
-      // URL varsa tıklanabilir link yap
       const formattedMessage = message.replace(
         /(https?:\/\/[^\s]+)/g,
-        '<a href="$1" target="_blank" class="underline text-orange-400 hover:text-orange-300 break-all block mt-1">$1</a>'
-      ).replace(/\n/g, '<br/>');
+        "<a href=\"$1\" target=\"_blank\" class=\"underline text-orange-400 hover:text-orange-300 break-all block mt-1\">$1</a>"
+      ).replace(/\n/g, "<br/>");
 
       toast.innerHTML = `
-        <span class="text-base mr-2.5 flex-shrink-0">${icon}</span>
+        <span class="inline-block w-1.5 h-1.5 rounded-full ${dotColor} mt-1.5 mr-2.5 flex-shrink-0"></span>
         <div class="flex-1">${formattedMessage}</div>
       `;
 
       container.appendChild(toast);
 
-      // Slide-up animasyonu
       requestAnimationFrame(() => {
-        toast.classList.remove('translate-y-3', 'opacity-0');
+        toast.classList.remove("translate-y-2", "opacity-0");
       });
 
-      // 3.5 saniye sonra kaybol
       setTimeout(() => {
-        toast.classList.add('opacity-0', 'translate-y-2');
-        setTimeout(() => toast.remove(), 300);
+        toast.classList.add("opacity-0", "translate-y-1");
+        setTimeout(() => toast.remove(), 200);
       }, 3500);
     }
 
-    // Varsayılan alert'leri doğrudan custom toast'a yönlendir
     window.alert = function(msg) {
       showToast(msg);
     };
+
 
     let rawRepos = [];
     let filteredRepos = [];
