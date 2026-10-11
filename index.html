@@ -3,51 +3,7 @@
 <head>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-PV5KKBHT89">
-    window.openCommunityModal = async function() {
-      const modal = document.getElementById('community-modal');
-      const list = document.getElementById('community-users-list');
-      if (!modal || !list) return;
-      
-      modal.classList.remove('hidden');
-      list.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">Loading contributors...</p>';
-
-      try {
-        const res = await fetch('/api/users');
-        const users = await res.json();
-        
-        if (!users || users.length === 0) {
-          list.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">No contributors found yet.</p>';
-          return;
-        }
-
-        list.innerHTML = users.map(u => `
-          <a href="/u/${u.username}" class="flex items-center justify-between p-3 bg-[#22272b] hover:bg-[#2c3238] border border-[#343536] rounded-lg transition group">
-            <div class="flex items-center gap-3 min-w-0">
-              <img src="https://github.com/${u.username}.png" class="w-10 h-10 rounded-full border border-[#343536] bg-[#0d1117] flex-shrink-0" alt="${u.username}">
-              <div class="min-w-0">
-                <span class="text-sm font-semibold text-white group-hover:text-orange-400 transition block truncate">${u.username}</span>
-                <div class="text-[11px] text-gray-400 flex items-center gap-2 mt-0.5">
-                  <span class="text-emerald-400 font-medium">${u.revived} Revived</span> • 
-                  <span class="text-amber-400">${u.wip} WIP</span> • 
-                  <span>${u.comments} Comments</span>
-                </div>
-              </div>
-            </div>
-            <span class="text-xs text-gray-400 group-hover:text-white px-2 py-1 rounded bg-[#1a1a1b] border border-[#343536] ml-2 flex-shrink-0">
-              View &rarr;
-            </span>
-          </a>
-        `).join('');
-      } catch (err) {
-        console.error(err);
-        list.innerHTML = '<p class="text-xs text-red-400 text-center py-6">Failed to load contributors.</p>';
-      }
-    };
-
-    window.closeCommunityModal = function() {
-      const modal = document.getElementById('community-modal');
-      if (modal) modal.classList.add('hidden');
-    };
+    
 
 </script>
     <script>
@@ -113,20 +69,7 @@
     
   </header>
   <!-- Community Modal -->
-  <div id="community-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-[#1a1a1b] border border-[#343536] rounded-xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl">
-      <div class="px-5 py-4 border-b border-[#343536] flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-users text-orange-500 text-lg"></i>
-          <h2 class="text-base font-bold text-white">Active Community & Revivers</h2>
-        </div>
-        <button onclick="closeCommunityModal()" class="text-gray-400 hover:text-white text-lg px-2">&times;</button>
-      </div>
-      <div id="community-users-list" class="p-5 overflow-y-auto space-y-3 flex-1">
-        <p class="text-xs text-gray-400 text-center py-4">Loading active developers...</p>
-      </div>
-    </div>
-  </div>
+  
 
 
   <!-- Filter & Controls -->
@@ -748,5 +691,78 @@
 
   <!-- Toast Notification Container -->
   <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-3 pointer-events-none"></div>
+
+  <!-- Community Modal -->
+  <div id="community-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4" onclick="if(event.target === this) closeCommunityModal()">
+    <div class="bg-[#1a1a1b] border border-[#343536] rounded-xl max-w-md w-full max-h-[80vh] flex flex-col shadow-2xl overflow-hidden" onclick="event.stopPropagation()">
+      <div class="px-5 py-3.5 border-b border-[#343536] flex items-center justify-between bg-[#161b22]">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-full bg-orange-600/20 text-orange-500 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-users"></i>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-white">Active Community</h2>
+            <p class="text-[11px] text-gray-400">Contributors & revivers</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeCommunityModal()" class="text-gray-400 hover:text-white text-xl p-1 leading-none">&times;</button>
+      </div>
+      <div id="community-users-list" class="p-4 overflow-y-auto space-y-2 flex-1">
+        <p class="text-xs text-gray-400 text-center py-6">Loading contributors...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function openCommunityModal() {
+      const modal = document.getElementById('community-modal');
+      const list = document.getElementById('community-users-list');
+      if (!modal || !list) {
+        alert("Community modal not ready.");
+        return;
+      }
+      
+      modal.classList.remove('hidden');
+      list.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">Loading contributors...</p>';
+
+      try {
+        const res = await fetch('/api/users');
+        const users = await res.json();
+        
+        if (!users || users.length === 0) {
+          list.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">No contributors found yet.</p>';
+          return;
+        }
+
+        list.innerHTML = users.map(u => `
+          <a href="/u/${encodeURIComponent(u.username)}" class="flex items-center justify-between p-3 bg-[#22272b] hover:bg-[#2c3238] border border-[#343536] rounded-lg transition group">
+            <div class="flex items-center gap-3 min-w-0">
+              <img src="https://github.com/${encodeURIComponent(u.username)}.png" class="w-10 h-10 rounded-full border border-[#343536] bg-[#0d1117] flex-shrink-0" alt="${u.username}">
+              <div class="min-w-0">
+                <span class="text-sm font-semibold text-white group-hover:text-orange-400 transition block truncate">${u.username}</span>
+                <div class="text-[11px] text-gray-400 flex items-center gap-2 mt-0.5">
+                  <span class="text-emerald-400 font-medium">${u.revived} Revived</span> • 
+                  <span class="text-amber-400">${u.wip} WIP</span> • 
+                  <span>${u.comments} Comments</span>
+                </div>
+              </div>
+            </div>
+            <span class="text-xs text-gray-400 group-hover:text-white px-2 py-1 rounded bg-[#1a1a1b] border border-[#343536] ml-2 flex-shrink-0">
+              Profile &rarr;
+            </span>
+          </a>
+        `).join('');
+      } catch (err) {
+        console.error("Community modal error:", err);
+        list.innerHTML = '<p class="text-xs text-red-400 text-center py-6">Failed to load contributors.</p>';
+      }
+    }
+
+    function closeCommunityModal() {
+      const modal = document.getElementById('community-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+  </script>
+
 </body>
 </html>
