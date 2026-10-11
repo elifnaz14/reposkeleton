@@ -86,6 +86,17 @@
         </div>
       </section>
     </div>
+
+    <!-- Discussions / Comments Panel -->
+    <section class="border border-[#30363d] bg-[#161b22] rounded-lg p-5 mt-6">
+      <div class="flex items-center justify-between pb-3 mb-4 border-b border-[#30363d]">
+        <span class="text-xs font-semibold uppercase tracking-wider text-[#c9d1d9] mono">Discussions & Notes</span>
+        <span class="text-[11px] text-[#8b949e] mono">community_contributions</span>
+      </div>
+      <div id="comments-list" class="space-y-3">
+        <!-- Dinamik içerik -->
+      </div>
+    </section>
   </main>
 
   <script>
@@ -141,6 +152,31 @@
               </div>
             </div>
           `).join('');
+        }
+
+        const commentsBox = document.getElementById("comments-list");
+        if (commentsBox) {
+          if (!data.comments || data.comments.length === 0) {
+            commentsBox.innerHTML = `
+              <div class="border border-dashed border-[#30363d] rounded p-6 text-center">
+                <span class="text-xs text-[#8b949e] mono">No discussion comments recorded yet.</span>
+              </div>
+            `;
+          } else {
+            commentsBox.innerHTML = data.comments.map(c => `
+              <div class="border border-[#30363d] bg-[#0d1117] rounded p-3.5 hover:border-[#8b949e] transition space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="mono font-semibold text-[#58a6ff] hover:underline cursor-pointer">
+                    ${c.repo}
+                  </span>
+                  <span class="mono text-[10px] text-[#8b949e]">
+                    ${c.votes !== undefined ? `+${c.votes} votes` : ''}
+                  </span>
+                </div>
+                <p class="text-xs text-[#c9d1d9] leading-relaxed whitespace-pre-wrap">${c.text || ''}</p>
+              </div>
+            `).join('');
+          }
         }
       })
       .catch(() => {
