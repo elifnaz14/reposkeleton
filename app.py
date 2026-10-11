@@ -179,29 +179,39 @@ def get_user_profile(username: str):
     """Kullanıcının durum güncellemelerini, sahiplendiği projeleri ve yorumlarını çeker."""
     discussions = load_discussions()
     
-    # Kullanıcının güncellediği veya canlandırdığı projeler
     revived_repos = []
     wip_repos = []
     user_comments = []
+    u_lower = username.lower()
     
     for repo_full_name, data in discussions.items():
-        # Durum kontrolü
-        status_info = data.get("status", {})
-        if status_info.get("updated_by", "").lower() == username.lower():
+        raw_status = data.get("status")
+        claimed_by = None
+        state = None
+        revived_url = data.get("revived_url")
+
+        if isinstance(raw_status, dict):
+            claimed_by = raw_status.get("updated_by") or raw_status.get("claimed_by")
+            state = (raw_status.get("state") or raw_status.get("status") or "").lower()
+            revived_url = raw_status.get("revived_url") or revived_url
+        elif isinstance(raw_status, str):
+            state = raw_status.lower()
+            claimed_by = data.get("claimed_by")
+
+        if claimed_by and claimed_by.lower() == u_lower:
             repo_entry = {
                 "repo": repo_full_name,
-                "status": status_info.get("state"),
-                "revived_url": status_info.get("revived_url"),
-                "updated_at": status_info.get("updated_at")
+                "status": "Revived" if state == "revived" else ("WIP" if state == "wip" else state.capitalize()),
+                "revived_url": revived_url,
+                "updated_at": data.get("updated_at")
             }
-            if status_info.get("state") == "Revived":
+            if state == "revived":
                 revived_repos.append(repo_entry)
-            elif status_info.get("state") == "WIP":
+            elif state == "wip":
                 wip_repos.append(repo_entry)
                 
-        # Yorum kontrolü
         for comment in data.get("comments", []):
-            if comment.get("user", "").lower() == username.lower():
+            if comment.get("user", "").lower() == u_lower:
                 user_comments.append({
                     "repo": repo_full_name,
                     "text": comment.get("text"),
