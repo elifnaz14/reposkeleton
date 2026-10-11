@@ -24,6 +24,7 @@
     .badge-active { background-color: #ea580c !important; color: #ffffff !important; border-color: #ea580c !important; }
   </style>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body class="bg-[#0e1113] text-gray-200 min-h-screen pb-16 antialiased selection:bg-orange-500 selection:text-white">
 
@@ -108,6 +109,32 @@
 
   <!-- Feed Area -->
   <main class="max-w-5xl mx-auto px-3 sm:px-4 py-4">
+    
+    <!-- Feed Sorting Bar -->
+    <div class="flex items-center justify-between pb-3 border-b border-[#22272b] mb-4">
+      <div class="flex items-center gap-1.5 bg-[#161b22] p-1 rounded-lg border border-[#30363d] text-xs">
+        <button id="sort-hot" onclick="setSortMode('hot')" class="sort-btn px-3 py-1 rounded font-semibold text-white bg-[#21262d] transition">Hot</button>
+        <button id="sort-top" onclick="setSortMode('top')" class="sort-btn px-3 py-1 rounded font-semibold text-gray-400 hover:text-white transition">Top</button>
+        <button id="sort-new" onclick="setSortMode('new')" class="sort-btn px-3 py-1 rounded font-semibold text-gray-400 hover:text-white transition">New</button>
+      </div>
+      <div class="relative">
+        <button id="notif-btn" onclick="toggleNotifications()" class="relative text-gray-400 hover:text-white bg-[#161b22] border border-[#30363d] rounded-lg px-2.5 py-1.5 text-xs flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-bell text-xs"></i>
+          <span id="notif-badge" class="hidden w-2 h-2 rounded-full bg-orange-500"></span>
+        </button>
+        <!-- Notifications Dropdown -->
+        <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-72 bg-[#1f2328] border border-[#30363d] rounded-lg shadow-2xl z-50 overflow-hidden text-xs">
+          <div class="px-3 py-2 bg-[#161b22] border-b border-[#30363d] font-semibold text-gray-300 flex justify-between items-center">
+            <span>Notifications</span>
+            <span class="text-[10px] text-gray-500">Mentions & Replies</span>
+          </div>
+          <div id="notif-list" class="max-h-56 overflow-y-auto divide-y divide-[#30363d]/40 p-1 text-gray-300">
+            <div class="text-center py-4 text-gray-500 text-xs">No new notifications</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="feed-container" class="space-y-3">
       <div class="text-center py-12 text-gray-400 text-sm">Loading repos...</div>
     </div>
@@ -610,7 +637,7 @@
                 <i class="fa-solid fa-reply text-[10px]"></i> Reply
               </button>
             </div>
-            <p class="text-xs text-gray-200 leading-relaxed break-words">${formatMentions(c.text)}</p>
+            <p class="text-xs text-gray-200 leading-relaxed break-words">${parseCommentMarkdown(c.text)}</p>
           </div>
         `;
         list.appendChild(el);
@@ -892,6 +919,100 @@
       document.addEventListener("DOMContentLoaded", initMentionAutocomplete);
     } else {
       initMentionAutocomplete();
+    }
+  </script>
+
+
+  <script>
+    let currentSortMode = 'hot';
+
+    function setSortMode(mode) {
+      currentSortMode = mode;
+      document.querySelectorAll('.sort-btn').forEach(b => {
+        b.classList.remove('bg-[#21262d]', 'text-white');
+        b.classList.add('text-gray-400');
+      });
+      const activeBtn = document.getElementById(`sort-${mode}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-[#21262d]', 'text-white');
+        activeBtn.classList.remove('text-gray-400');
+      }
+      applySortAndRender();
+    }
+
+    function applySortAndRender() {
+      if (!window.reposData || window.reposData.length === 0) return;
+      
+      let list = [...window.reposData];
+      if (currentSortMode === 'top') {
+        list.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+      } else if (currentSortMode === 'new') {
+        list.sort((a, b) => new Date(b.created_at || b.pushed_at || 0) - new Date(a.created_at || a.pushed_at || 0));
+      } else {
+        // Hot: Upvotes + Star weight
+        list.sort((a, b) => ((b.upvotes || 0) * 2 + (b.stargazers_count || 0) * 0.05) - ((a.upvotes || 0) * 2 + (a.stargazers_count || 0) * 0.05));
+      }
+      if (typeof window.renderRepos === 'function') {
+        window.renderRepos(list);
+      }
+    }
+
+    async function toggleNotifications() {
+      const drop = document.getElementById('notif-dropdown');
+      if (!drop) return;
+      drop.classList.toggle('hidden');
+      if (!drop.classList.contains('hidden')) {
+        const currentUser = localStorage.getItem('username') || '';
+        if (!currentUser) {
+          document.getElementById('notif-list').innerHTML = '<div class="text-center py-4 text-gray-500">Sign in to see notifications</div>';
+          return;
+        }
+        try {
+          const res = await fetch(`/api/notifications?user=${encodeURIComponent(currentUser)}`);
+          const notifs = await res.json();
+          const list = document.getElementById('notif-list');
+          if (notifs.length === 0) {
+            list.innerHTML = '<div class="text-center py-4 text-gray-500">No new notifications</div>';
+          } else {
+            list.innerHTML = notifs.map(n => `
+              <div class="p-2 hover:bg-[#272729] rounded transition cursor-pointer" onclick="openComments('${n.repo}')">
+                <span class="font-bold text-orange-400">@${n.from_user}</span> mentioned you in <span class="text-gray-200 font-mono">${n.repo}</span>
+                <p class="text-[11px] text-gray-400 truncate mt-0.5">${n.text}</p>
+              </div>
+            `).join('');
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+
+    // Markdown Parser with auto-mentions
+    function parseCommentMarkdown(raw) {
+      if (!raw) return '';
+      let formatted = raw.replace(/@([a-zA-Z0-9_-]+)/g, '[@$1](/u/$1)');
+      if (typeof marked !== 'undefined') {
+        return marked.parse(formatted);
+      }
+      return formatted;
+    }
+
+    // Upvote / Downvote Comment
+    async function voteCommentDirect(commentId, direction, btn) {
+      if (!activeRepoForModal) return;
+      try {
+        await fetch('/api/comments/vote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ repo: activeRepoForModal, comment_id: commentId, direction })
+        });
+        const countSpan = btn.parentElement.querySelector('.vote-count');
+        if (countSpan) {
+          countSpan.innerText = parseInt(countSpan.innerText || '0') + direction;
+        }
+      } catch (e) {
+        console.error(e);
+      }
     }
   </script>
 

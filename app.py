@@ -398,3 +398,47 @@ def get_all_users():
                 users_map[u]["comments"] += 1
 
     return list(users_map.values())
+
+
+# --- Reddit-Style Endpoints (Karma, Vote, Notifications) ---
+
+@app.get("/api/notifications")
+async def get_notifications(user: str = ""):
+    if not user:
+        return []
+    # In-memory / DB dummy or persistent notifications
+    notifications = []
+    for repo_name, meta in DISCUSSIONS.items():
+        for c in meta.get("comments", []):
+            if f"@{user}" in c.get("text", "") and c.get("user") != user:
+                notifications.append({
+                    "id": c.get("id"),
+                    "repo": repo_name,
+                    "from_user": c.get("user"),
+                    "text": c.get("text"),
+                    "time": c.get("time", "recently"),
+                    "type": "mention"
+                })
+    return notifications
+
+@app.post("/api/comments/vote")
+async def vote_comment_endpoint(payload: dict):
+    # payload: { repo: str, comment_id: str, direction: 1 or -1 }
+    repo_name = payload.get("repo")
+    c_id = payload.get("comment_id")
+    direction = int(payload.get("direction", 1))
+
+    if repo_name in DISCUSSIONS:
+        def update_votes(comments):
+            for c in comments:
+                if str(c.get("id")) == str(c_id):
+                    c["votes"] = c.get("votes", 0) + direction
+                    return True
+                if "replies" in c and update_votes(c["replies"]):
+                    return True
+            return False
+
+        update_votes(DISCUSSIONS[repo_name].get("comments", []))
+        save_discussions()
+        return {"status": "success"}
+    return {"status": "error", "message": "Repo not found"}
