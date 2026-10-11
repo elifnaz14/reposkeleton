@@ -177,7 +177,7 @@ from fastapi.responses import HTMLResponse
 @app.get("/api/user/{username}")
 def get_user_profile(username: str):
     """Kullanıcının durum güncellemelerini, sahiplendiği projeleri ve yorumlarını çeker."""
-    discussions = load_discussions()
+    discussions = load_data()
     
     revived_repos = []
     wip_repos = []
