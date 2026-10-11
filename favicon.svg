@@ -1,10 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <rect width="32" height="32" rx="8" fill="#161b22"/>
-  <rect x="0.5" y="0.5" width="31" height="31" rx="7.5" stroke="#30363d"/>
-  <!-- Minimalist Skeleton / Fork Motif -->
-  <path d="M10 8V24M10 16H22M22 16V10M22 16V22" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="10" cy="8" r="2" fill="#f97316"/>
-  <circle cx="10" cy="24" r="2" fill="#f97316"/>
-  <circle cx="22" cy="10" r="2" fill="#f97316"/>
-  <circle cx="22" cy="22" r="2" fill="#f97316"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#0d1117"/>
+  
+  <!-- Omurga (Spine / Central Git Branch) -->
+  <line x1="32" y1="12" x2="32" y2="52" stroke="#e6edf3" stroke-width="3.5" stroke-linecap="round"/>
+  
+  <!-- Üst ve Alt Omur Düğümleri -->
+  <circle cx="32" cy="12" r="3.5" fill="#f0883e"/>
+  <circle cx="32" cy="52" r="3" fill="#e6edf3"/>
+
+  <!-- Üst Kaburga Çifti (Geniş) -->
+  <path d="M 32 22 Q 20 20, 16 26" fill="none" stroke="#e6edf3" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="16" cy="26" r="2.5" fill="#f0883e"/>
+  
+  <path d="M 32 22 Q 44 20, 48 26" fill="none" stroke="#e6edf3" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="48" cy="26" r="2.5" fill="#f0883e"/>
+
+  <!-- Orta Kaburga Çifti -->
+  <path d="M 32 31 Q 19 30, 18 37" fill="none" stroke="#e6edf3" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="18" cy="37" r="2.5" fill="#f0883e"/>
+  
+  <path d="M 32 31 Q 45 30, 46 37" fill="none" stroke="#e6edf3" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="46" cy="37" r="2.5" fill="#f0883e"/>
+
+  <!-- Alt Kaburga Çifti (Dar) -->
+  <path d="M 32 40 Q 24 39, 22 45" fill="none" stroke="#e6edf3" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="22" cy="45" r="2" fill="#8b949e"/>
+  
+  <path d="M 32 40 Q 40 39, 42 45" fill="none" stroke="#e6edf3" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="42" cy="45" r="2" fill="#8b949e"/>
 </svg>
