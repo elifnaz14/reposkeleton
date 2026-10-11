@@ -550,6 +550,23 @@
       renderModalComments();
     }
 
+    
+    function formatMentions(text) {
+      if (!text) return '';
+      // HTML kaçışını basitçe koruyup @username olanları linkle
+      return text.replace(/@([a-zA-Z0-9_\-]+)/g, '<a href="/u/$1" class="text-orange-400 hover:underline font-semibold">@$1</a>');
+    }
+
+    function replyToUser(username) {
+      const textarea = document.getElementById('comment-text');
+      if (!textarea) return;
+      const mention = `@${username} `;
+      if (!textarea.value.includes(mention)) {
+        textarea.value = mention + textarea.value;
+      }
+      textarea.focus();
+    }
+
     function renderModalComments() {
       const meta = discussionsData[activeRepoForModal] || { comments: [] };
       const list = document.getElementById('comments-list');
@@ -571,13 +588,18 @@
             <span class="text-[11px] font-bold text-gray-300 font-mono my-0.5">${c.votes || 0}</span>
           </div>
           <!-- Comment Body -->
-          <div class="flex-1 space-y-1">
-            <div class="flex items-center space-x-2">
-              <img src="${c.avatar || 'https://github.com/ghost.png'}" class="w-4 h-4 rounded-full">
-              <span class="text-xs font-bold text-white">@${c.user}</span>
-              <span class="text-[10px] text-gray-400">• ${c.time}</span>
+          <div class="flex-1 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <img src="${c.avatar || 'https://github.com/ghost.png'}" class="w-4 h-4 rounded-full border border-[#343536]">
+                <a href="/u/${encodeURIComponent(c.user)}" class="text-xs font-bold text-white hover:text-orange-400 transition">@${c.user}</a>
+                <span class="text-[10px] text-gray-400">• ${c.time}</span>
+              </div>
+              <button type="button" onclick="replyToUser('${c.user}')" class="text-[11px] text-gray-400 hover:text-orange-400 transition flex items-center gap-1 cursor-pointer">
+                <i class="fa-solid fa-reply text-[10px]"></i> Reply
+              </button>
             </div>
-            <p class="text-xs text-gray-200 leading-relaxed">${c.text}</p>
+            <p class="text-xs text-gray-200 leading-relaxed break-words">${formatMentions(c.text)}</p>
           </div>
         `;
         list.appendChild(el);
