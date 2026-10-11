@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer Profile | RepoSkeleton</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  <!-- Navbar -->
+  <nav class="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight text-white hover:text-emerald-400 transition">
+      <span>💀 RepoSkeleton</span>
+    </a>
+    <a href="/" class="text-sm font-medium text-slate-400 hover:text-white transition">
+      ← Back to Radar
+    </a>
+  </nav>
+
+  <main class="max-w-5xl mx-auto px-6 py-12">
+    <!-- Header Card -->
+    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 mb-8 flex flex-col md:flex-row items-center gap-8 shadow-xl">
+      <img id="avatar" class="w-28 h-28 rounded-full border-4 border-slate-800 bg-slate-800" src="https://github.com/ghost.png" alt="Avatar">
+      <div class="flex-1 text-center md:text-left">
+        <h1 id="user-heading" class="text-3xl font-extrabold text-white">Loading...</h1>
+        <p class="text-slate-400 mt-1 flex items-center justify-center md:justify-start gap-2">
+          <i class="fab fa-github"></i> <a id="github-link" href="#" target="_blank" class="hover:text-emerald-400 underline">View GitHub Profile</a>
+        </p>
+        
+        <!-- Stats Badges -->
+        <div class="flex flex-wrap gap-4 mt-6 justify-center md:justify-start">
+          <div class="bg-emerald-950/40 border border-emerald-800/50 px-4 py-2 rounded-xl">
+            <span class="text-xs text-emerald-400 uppercase font-semibold tracking-wider">Revived Repos</span>
+            <p id="stat-revived" class="text-2xl font-bold text-emerald-200">0</p>
+          </div>
+          <div class="bg-amber-950/40 border border-amber-800/50 px-4 py-2 rounded-xl">
+            <span class="text-xs text-amber-400 uppercase font-semibold tracking-wider">Working On (WIP)</span>
+            <p id="stat-wip" class="text-2xl font-bold text-amber-200">0</p>
+          </div>
+          <div class="bg-indigo-950/40 border border-indigo-800/50 px-4 py-2 rounded-xl">
+            <span class="text-xs text-indigo-400 uppercase font-semibold tracking-wider">Contributions</span>
+            <p id="stat-comments" class="text-2xl font-bold text-indigo-200">0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Showcase Grid -->
+    <div class="space-y-8">
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span>✨ Revived Projects Showcase</span>
+        </h2>
+        <div id="revived-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Dinamik içerik -->
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span>🛠 Currently Working On (WIP)</span>
+        </h2>
+        <div id="wip-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Dinamik içerik -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const username = window.location.pathname.split("/").filter(Boolean).pop();
+    document.getElementById("user-heading").innerText = `@${username}`;
+    document.getElementById("avatar").src = `https://github.com/${username}.png`;
+    document.getElementById("github-link").href = `https://github.com/${username}`;
+
+    fetch(`/api/user/${username}`)
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("stat-revived").innerText = data.revived_count;
+        document.getElementById("stat-wip").innerText = data.wip_count;
+        document.getElementById("stat-comments").innerText = data.total_comments;
+
+        const revivedBox = document.getElementById("revived-list");
+        if (data.revived_repos.length === 0) {
+          revivedBox.innerHTML = `<p class="text-slate-500 italic col-span-2">No projects revived yet.</p>`;
+        } else {
+          revivedBox.innerHTML = data.revived_repos.map(r => `
+            <div class="bg-slate-900 border border-emerald-900/40 rounded-xl p-5 hover:border-emerald-600 transition">
+              <div class="flex justify-between items-start mb-2">
+                <span class="font-bold text-emerald-400">${r.repo}</span>
+                <span class="text-xs bg-emerald-900/60 text-emerald-300 px-2 py-0.5 rounded">REVIVED</span>
+              </div>
+              ${r.revived_url ? `<a href="${r.revived_url}" target="_blank" class="text-xs text-slate-300 hover:text-white underline flex items-center gap-1 mt-2"><i class="fas fa-external-link-alt"></i> ${r.revived_url}</a>` : ''}
+            </div>
+          `).join('');
+        }
+
+        const wipBox = document.getElementById("wip-list");
+        if (data.wip_repos.length === 0) {
+          wipBox.innerHTML = `<p class="text-slate-500 italic col-span-2">No active projects right now.</p>`;
+        } else {
+          wipBox.innerHTML = data.wip_repos.map(r => `
+            <div class="bg-slate-900 border border-amber-900/40 rounded-xl p-5 hover:border-amber-600 transition">
+              <div class="flex justify-between items-start mb-2">
+                <span class="font-bold text-amber-400">${r.repo}</span>
+                <span class="text-xs bg-amber-900/60 text-amber-300 px-2 py-0.5 rounded">WIP</span>
+              </div>
+            </div>
+          `).join('');
+        }
+      });
+  </script>
+</body>
+</html>

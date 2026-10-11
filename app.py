@@ -171,3 +171,56 @@ def index():
         with open("index.html", "r", encoding="utf-8") as f:
             return f.read()
     return "<h1>index.html not found</h1>"
+
+from fastapi.responses import HTMLResponse
+
+@app.get("/api/user/{username}")
+def get_user_profile(username: str):
+    """Kullanıcının durum güncellemelerini, sahiplendiği projeleri ve yorumlarını çeker."""
+    discussions = load_discussions()
+    
+    # Kullanıcının güncellediği veya canlandırdığı projeler
+    revived_repos = []
+    wip_repos = []
+    user_comments = []
+    
+    for repo_full_name, data in discussions.items():
+        # Durum kontrolü
+        status_info = data.get("status", {})
+        if status_info.get("updated_by", "").lower() == username.lower():
+            repo_entry = {
+                "repo": repo_full_name,
+                "status": status_info.get("state"),
+                "revived_url": status_info.get("revived_url"),
+                "updated_at": status_info.get("updated_at")
+            }
+            if status_info.get("state") == "Revived":
+                revived_repos.append(repo_entry)
+            elif status_info.get("state") == "WIP":
+                wip_repos.append(repo_entry)
+                
+        # Yorum kontrolü
+        for comment in data.get("comments", []):
+            if comment.get("user", "").lower() == username.lower():
+                user_comments.append({
+                    "repo": repo_full_name,
+                    "text": comment.get("text"),
+                    "votes": comment.get("votes", 0),
+                    "created_at": comment.get("created_at")
+                })
+                
+    return {
+        "username": username,
+        "revived_count": len(revived_repos),
+        "wip_count": len(wip_repos),
+        "total_comments": len(user_comments),
+        "revived_repos": revived_repos,
+        "wip_repos": wip_repos,
+        "comments": user_comments
+    }
+
+@app.get("/u/{username}", response_class=HTMLResponse)
+def user_profile_page(username: str):
+    """Profil sayfası arayüzü"""
+    with open("profile.html", "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read())
