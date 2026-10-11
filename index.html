@@ -164,7 +164,15 @@
 
       <!-- Drawer Footer: Add Comment -->
       <div class="p-3 border-t border-[#22272b] bg-[#151718]">
-        <div id="comment-input-area">
+        <div id="comment-input-area" class="relative">
+        <!-- Mention Dropdown -->
+        <div id="mention-dropdown" class="hidden absolute bottom-[105%] left-0 w-64 bg-[#1f2328] border border-[#444c56] rounded-lg shadow-2xl z-[999] overflow-hidden text-xs">
+          <div class="px-2.5 py-1.5 bg-[#161b22] border-b border-[#30363d] text-[10px] text-gray-400 font-semibold flex items-center justify-between">
+            <span>Önerilen Kullanıcılar</span>
+            <span class="text-[9px] text-gray-500">ESC ile kapat</span>
+          </div>
+          <div id="mention-list" class="max-h-48 overflow-y-auto divide-y divide-[#30363d]/40"></div>
+        </div>
           <textarea id="comment-text" placeholder="Share your revive plan, tech suggestions or ideas..." rows="2" class="w-full bg-[#272729] text-xs text-gray-200 border border-[#343536] rounded-lg p-2.5 focus:outline-none focus:border-orange-500 resize-none"></textarea>
           <div class="flex justify-between items-center mt-2">
             <span id="comment-user-hint" class="text-[11px] text-gray-400"></span>
@@ -783,6 +791,93 @@
     function closeCommunityModal() {
       const modal = document.getElementById('community-modal');
       if (modal) modal.classList.add('hidden');
+    }
+  </script>
+
+
+  <script>
+    let mentionUsersCache = null;
+
+    async function fetchMentionUsers() {
+      if (mentionUsersCache) return mentionUsersCache;
+      try {
+        const res = await fetch("/api/users");
+        const data = await res.json();
+        mentionUsersCache = data.map(u => u.username);
+      } catch (err) {
+        mentionUsersCache = [];
+      }
+      return mentionUsersCache;
+    }
+
+    function initMentionAutocomplete() {
+      const textarea = document.getElementById("comment-text");
+      const dropdown = document.getElementById("mention-dropdown");
+      const list = document.getElementById("mention-list");
+
+      if (!textarea || !dropdown || !list) return;
+
+      textarea.addEventListener("input", async () => {
+        const val = textarea.value;
+        const selStart = textarea.selectionStart;
+        const textUpToCursor = val.slice(0, selStart);
+        const match = textUpToCursor.match(/@([a-zA-Z0-9_-]*)$/);
+
+        if (match) {
+          const query = match[1].toLowerCase();
+          const users = await fetchMentionUsers();
+          const filtered = users.filter(u => u.toLowerCase().includes(query));
+
+          if (filtered.length > 0) {
+            list.innerHTML = filtered.map(u => `
+              <div onclick="selectMentionUser('${u}')" class="flex items-center gap-2.5 px-3 py-2 hover:bg-[#2e343d] cursor-pointer transition text-gray-200 hover:text-white">
+                <img src="https://github.com/${encodeURIComponent(u)}.png" class="w-5 h-5 rounded-full border border-[#444c56]" alt="${u}">
+                <span class="font-medium text-xs">@${u}</span>
+              </div>
+            `).join("");
+            dropdown.classList.remove("hidden");
+          } else {
+            dropdown.classList.add("hidden");
+          }
+        } else {
+          dropdown.classList.add("hidden");
+        }
+      });
+
+      textarea.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") dropdown.classList.add("hidden");
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!dropdown.contains(e.target) && e.target !== textarea) {
+          dropdown.classList.add("hidden");
+        }
+      });
+    }
+
+    function selectMentionUser(username) {
+      const textarea = document.getElementById("comment-text");
+      const dropdown = document.getElementById("mention-dropdown");
+      if (!textarea) return;
+
+      const cursor = textarea.selectionStart;
+      const val = textarea.value;
+      const textBefore = val.slice(0, cursor);
+      const textAfter = val.slice(cursor);
+
+      const replaced = textBefore.replace(/@([a-zA-Z0-9_-]*)$/, "@" + username + " ");
+      textarea.value = replaced + textAfter;
+      if (dropdown) dropdown.classList.add("hidden");
+      
+      textarea.focus();
+      const pos = replaced.length;
+      textarea.setSelectionRange(pos, pos);
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initMentionAutocomplete);
+    } else {
+      initMentionAutocomplete();
     }
   </script>
 
