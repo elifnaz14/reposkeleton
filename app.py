@@ -87,9 +87,7 @@ def save_data(data):
         print("File save error:", e)
 
 
-def save_data(data):
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+
 
 @app.get("/login")
 def login():
