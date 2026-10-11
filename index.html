@@ -121,7 +121,7 @@
   </main>
 
   <!-- Reddit-Style Discussion / Comments Drawer Modal -->
-  <div id="comment-modal" class="fixed inset-0 bg-black/75 z-50 hidden flex justify-end transition-opacity" onclick="if(event.target === this) closeModal()">
+  <div id="comment-modal" class="fixed inset-0 bg-black/75 z-50 hidden flex justify-end transition-opacity" onclick="if(event.target === this) closeModal()" onclick="if(event.target === this) closeModal()" onclick="if(event.target === this) closeModal()">
     <div class="w-full max-w-lg bg-[#1a1a1b] h-full flex flex-col border-l border-[#2a3236] shadow-2xl">
       
       <!-- Drawer Header -->
@@ -130,7 +130,10 @@
           <span class="text-xs text-orange-400 font-mono uppercase tracking-wider">Project Control & Discussion</span>
           <h3 id="modal-repo-name" class="font-bold text-white text-base truncate max-w-xs"></h3>
         </div>
-        <button onclick="closeModal()" class="text-gray-400 hover:text-white text-xl font-bold px-2"></button>
+        <button type="button" onclick="closeModal()" class="text-gray-300 hover:text-white bg-[#272729] hover:bg-[#343536] border border-[#343536] rounded-md px-2.5 py-1 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer">
+          <span>Close</span>
+          <span class="text-sm font-bold leading-none">&times;</span>
+        </button>
       </div>
 
       <!-- Status & Revive Link Management Box -->
