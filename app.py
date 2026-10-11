@@ -17,9 +17,46 @@ def get_favicon():
     return FileResponse("favicon.svg", media_type="image/svg+xml")
 
 
+import os
+import json
+import psycopg2
+
+DATABASE_URL = os.environ.get("DATABASE_URL")
 DATA_FILE = "discussions.json"
 
+def init_db():
+    if not DATABASE_URL:
+        return
+    try:
+        db_url = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+        with psycopg2.connect(db_url) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS store (
+                        key TEXT PRIMARY KEY,
+                        value JSONB
+                    );
+                """)
+                conn.commit()
+    except Exception as e:
+        print("DB init error:", e)
+
+init_db()
+
 def load_data():
+    if DATABASE_URL:
+        try:
+            db_url = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+            with psycopg2.connect(db_url) as conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT value FROM store WHERE key = 'discussions'")
+                    row = cur.fetchone()
+                    if row and row[0]:
+                        return row[0]
+                    return {}
+        except Exception as e:
+            print("DB load error:", e)
+            return {}
     if not os.path.exists(DATA_FILE):
         return {}
     try:
@@ -27,6 +64,28 @@ def load_data():
             return json.load(f)
     except Exception:
         return {}
+
+def save_data(data):
+    if DATABASE_URL:
+        try:
+            db_url = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+            with psycopg2.connect(db_url) as conn:
+                with conn.cursor() as cur:
+                    cur.execute("""
+                        INSERT INTO store (key, value)
+                        VALUES ('discussions', %s)
+                        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
+                    """, (json.dumps(data),))
+                    conn.commit()
+            return
+        except Exception as e:
+            print("DB save error:", e)
+    try:
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        print("File save error:", e)
+
 
 def save_data(data):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
