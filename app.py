@@ -210,21 +210,24 @@ async def post_comment(request: Request):
     user = payload.get("user")
     avatar = payload.get("avatar")
     text = payload.get("text")
+    parent_id = payload.get("parent_id")
 
-    if not repo or not text or not user:
-        return JSONResponse({"error": "Invalid data"}, status_code=400)
+    if not repo or not user or not text:
+        return JSONResponse({"error": "Invalid comment payload"}, status_code=400)
 
     all_data = load_data()
-    repo_data = all_data.get(repo, {"status": "dormant", "claimed_by": None, "revived_url": None, "comments": []})
+    repo_data = normalize_repo_data(all_data.get(repo, {"status": "dormant", "claimed_by": None, "revived_url": None, "comments": []}))
 
     comment_obj = {
         "id": os.urandom(4).hex(),
+        "parent_id": parent_id if parent_id else None,
         "user": user,
         "avatar": avatar,
         "text": text,
         "votes": 0,
         "time": "Just now"
     }
+    
     repo_data["comments"].insert(0, comment_obj)
     all_data[repo] = repo_data
     save_data(all_data)
