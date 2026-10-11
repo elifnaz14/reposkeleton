@@ -455,3 +455,44 @@ async def favicon_ico():
     if os.path.exists("favicon.ico"):
         return FileResponse("favicon.ico", media_type="image/x-icon", headers={"Cache-Control": "no-cache, must-revalidate"})
     return FileResponse("favicon.svg", media_type="image/svg+xml", headers={"Cache-Control": "no-cache, must-revalidate"})
+
+
+from fastapi.responses import Response
+
+@app.get("/api/badge/{owner}/{repo_name}")
+async def get_repo_badge(owner: str, repo_name: str):
+    full_name = f"{owner}/{repo_name}"
+    meta = DISCUSSIONS.get(full_name, {})
+    status = meta.get("status", "dormant")
+    
+    if status == "revived":
+        color = "#2ea44f"
+        text = "Revived"
+    elif status == "wip":
+        color = "#d97706"
+        text = "In Progress"
+    else:
+        color = "#6e7681"
+        text = "Dormant"
+        
+    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="130" height="20">
+      <linearGradient id="b" x2="0" y2="100%">
+        <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+        <stop offset="1" stop-opacity=".1"/>
+      </linearGradient>
+      <mask id="a">
+        <rect width="130" height="20" rx="3" fill="#fff"/>
+      </mask>
+      <g mask="url(#a)">
+        <path fill="#24292f" d="M0 0h65v20H0z"/>
+        <path fill="{color}" d="M65 0h65v20H65z"/>
+        <path fill="url(#b)" d="M0 0h130v20H0z"/>
+      </g>
+      <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
+        <text x="32.5" y="15" fill="#010101" fill-opacity=".3">Skeleton</text>
+        <text x="32.5" y="14">Skeleton</text>
+        <text x="96.5" y="15" fill="#010101" fill-opacity=".3">{text}</text>
+        <text x="96.5" y="14">{text}</text>
+      </g>
+    </svg>"""
+    return Response(content=svg, media_type="image/svg+xml", headers={"Cache-Control": "max-age=60"})

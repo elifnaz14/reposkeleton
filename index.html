@@ -17,6 +17,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>RepoSkeleton - Abandoned Open Source Radar</title>
+  <!-- Open Graph / Twitter Meta Tags for Rich Previews -->
+  <meta name="description" content="Discover abandoned open-source repositories with high stars, claim dead projects, and coordinate community revivals.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://reposkeleton-app-e8a5aa87d70f.herokuapp.com/">
+  <meta property="og:title" content="RepoSkeleton - Abandoned Open Source Radar">
+  <meta property="og:description" content="Discover abandoned open-source repositories with high stars, claim dead projects, and coordinate community revivals.">
+  <meta property="og:image" content="https://opengraph.b-cdn.net/production/images/reposkeleton-og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="RepoSkeleton - Abandoned Open Source Radar">
+  <meta name="twitter:description" content="Discover abandoned open-source repos, claim dormant projects, and coordinate revivals.">
   <script src="https://cdn.tailwindcss.com"></script>
   <meta name="theme-color" content="#1a1a1b">
   <style>
@@ -51,7 +61,7 @@
         <input 
           type="text" 
           id="search-input" 
-          oninput="applyFilters()" 
+          oninput="debouncedSearch()" 
           placeholder="Search by keyword (e.g. gpt, spotify, cli, react)..." 
           class="w-full bg-[#272729] text-xs text-gray-200 border border-[#343536] rounded-full px-4 py-2 focus:outline-none focus:border-orange-500 placeholder-gray-500"
         >
@@ -158,7 +168,31 @@
     </div>
 
     <div id="feed-container" class="space-y-3">
-      <div class="text-center py-12 text-gray-400 text-sm">Loading repos...</div>
+            <!-- Skeleton Loading Screens -->
+      <div id="skeleton-container" class="space-y-3">
+        <div class="bg-[#161b22] border border-[#30363d] rounded-xl p-4 animate-pulse space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-[#21262d]"></div>
+            <div class="h-4 bg-[#21262d] rounded w-48"></div>
+          </div>
+          <div class="h-3 bg-[#21262d] rounded w-3/4"></div>
+          <div class="flex gap-2 pt-2">
+            <div class="h-5 bg-[#21262d] rounded w-16"></div>
+            <div class="h-5 bg-[#21262d] rounded w-20"></div>
+          </div>
+        </div>
+        <div class="bg-[#161b22] border border-[#30363d] rounded-xl p-4 animate-pulse space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-[#21262d]"></div>
+            <div class="h-4 bg-[#21262d] rounded w-40"></div>
+          </div>
+          <div class="h-3 bg-[#21262d] rounded w-2/3"></div>
+          <div class="flex gap-2 pt-2">
+            <div class="h-5 bg-[#21262d] rounded w-16"></div>
+            <div class="h-5 bg-[#21262d] rounded w-20"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Load More -->
@@ -209,6 +243,17 @@
         </div>
       </div>
 
+              <!-- Community Share & Badge Toolbar -->
+        <div class="flex items-center gap-2 pt-1 border-t border-[#22272b]">
+          <button type="button" onclick="copyReadmeBadge()" class="flex-1 bg-[#21262d] hover:bg-[#30363d] text-gray-300 border border-[#30363d] rounded px-2.5 py-1.5 text-[11px] font-medium flex items-center justify-center gap-1.5 transition cursor-pointer">
+            <svg class="w-3.5 h-3.5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+            <span id="badge-copy-text">Copy README Badge</span>
+          </button>
+          <button type="button" onclick="shareProjectOnX()" class="bg-[#21262d] hover:bg-[#30363d] text-gray-300 border border-[#30363d] rounded px-2.5 py-1.5 text-[11px] font-medium flex items-center justify-center gap-1 transition cursor-pointer" title="Share on X">
+            <span>Share</span>
+            <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </button>
+        </div>
       <!-- Drawer Body: Comment List -->
       <div id="comments-list" class="flex-1 overflow-y-auto p-4 space-y-3">
         <div class="text-center text-xs text-gray-500 py-8">Loading thoughts & ideas...</div>
@@ -1035,6 +1080,45 @@
       } catch (e) {
         console.error(e);
       }
+    }
+  </script>
+
+
+  <script>
+    // Search Debouncing for Silky-smooth input
+    let searchTimeout = null;
+    const originalApplyFilters = typeof applyFilters === 'function' ? applyFilters : null;
+    
+    function debouncedSearch() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        if (typeof applyFilters === 'function') {
+          applyFilters();
+        }
+      }, 180);
+    }
+
+    // Copy Markdown Badge for GitHub README
+    function copyReadmeBadge() {
+      if (!activeRepoForModal) return;
+      const appUrl = window.location.origin;
+      const badgeMarkdown = `[![RepoSkeleton Status](${appUrl}/api/badge/${activeRepoForModal})](${appUrl}/?search=${encodeURIComponent(activeRepoForModal)})`;
+      navigator.clipboard.writeText(badgeMarkdown).then(() => {
+        const btnText = document.getElementById('badge-copy-text');
+        if (btnText) {
+          btnText.innerText = 'Copied to Clipboard!';
+          setTimeout(() => { btnText.innerText = 'Copy README Badge'; }, 2000);
+        }
+      });
+    }
+
+    // Share Project on X (Twitter)
+    function shareProjectOnX() {
+      if (!activeRepoForModal) return;
+      const appUrl = `${window.location.origin}/?search=${encodeURIComponent(activeRepoForModal)}`;
+      const text = encodeURIComponent(`Found this abandoned open-source gem on @RepoSkeleton: ${activeRepoForModal}. Ready to be revived! 🚀\n\n`);
+      const url = `https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(appUrl)}`;
+      window.open(url, '_blank');
     }
   </script>
 
