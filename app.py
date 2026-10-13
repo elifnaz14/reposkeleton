@@ -505,7 +505,7 @@ from fastapi.responses import PlainTextResponse
 async def robots_txt():
     return """User-agent: *
 Allow: /
-Sitemap: https://reposkeleton-app-e8a5aa87d70f.herokuapp.com/sitemap.xml
+Sitemap: https://www.reposkeleton.com/sitemap.xml
 """
 
 @app.get("/sitemap.xml")
@@ -513,7 +513,7 @@ async def sitemap_xml():
     xml = """<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://reposkeleton-app-e8a5aa87d70f.herokuapp.com/</loc>
+    <loc>https://www.reposkeleton.com/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>

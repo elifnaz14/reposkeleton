@@ -20,7 +20,7 @@
   <!-- Open Graph / Twitter Meta Tags for Rich Previews -->
   <meta name="description" content="Discover abandoned open-source repositories with high stars, claim dead projects, and coordinate community revivals.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://reposkeleton-app-e8a5aa87d70f.herokuapp.com/">
+  <meta property="og:url" content="https://www.reposkeleton.com/">
   <meta property="og:title" content="RepoSkeleton - Abandoned Open Source Radar">
   <meta property="og:description" content="Discover abandoned open-source repositories with high stars, claim dead projects, and coordinate community revivals.">
   <meta property="og:image" content="https://opengraph.b-cdn.net/production/images/reposkeleton-og.png">
@@ -1168,7 +1168,7 @@
     <!-- Kopyalama Alanı -->
     <div class="relative flex items-center bg-gray-950 rounded-lg border border-gray-800 px-3 py-2">
         <code id="markdownCode" class="text-xs text-green-400 font-mono truncate mr-20 select-all">
-            [![RepoSkeleton](https://reposkeleton-app-e8a5aa87d70f.herokuapp.com/api/badge/owner/repo)](https://reposkeleton-app-e8a5aa87d70f.herokuapp.com/)
+            [![RepoSkeleton](https://www.reposkeleton.com/api/badge/owner/repo)](https://www.reposkeleton.com/)
         </code>
         <button onclick="copyToClipboard()" class="absolute right-2 bg-blue-600 hover:bg-blue-500 text-white text-xs px-2.5 py-1.5  rounded font-medium transition">
             <span id="btnText">Kopyala</span>
@@ -1197,7 +1197,7 @@ function copyToClipboard() {
 function updateBadgeSection(owner, repo) {
     if(!owner || !repo) return;
     document.getElementById("dynamicBadgeImg").src = `/api/badge/${owner}/${repo}`;
-    document.getElementById("markdownCode").innerText = `[![RepoSkeleton](https://reposkeleton-app-e8a5aa87d70f.herokuapp.com/api/badge/${owner}/${repo})](https://reposkeleton-app-e8a5aa87d70f.herokuapp.com/)`;
+    document.getElementById("markdownCode").innerText = `[![RepoSkeleton](https://www.reposkeleton.com/api/badge/${owner}/${repo})](https://www.reposkeleton.com/)`;
     document.getElementById("badge-section").style.display = "block";
 }
 </script>
