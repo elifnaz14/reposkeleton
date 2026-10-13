@@ -1151,5 +1151,56 @@
       }
     }
   </script>
+
+<!-- Badge Paylaşım & Kopyalama Alanı -->
+<div class="mt-6 p-5 bg-gray-900 border border-gray-800 rounded-xl" id="badge-section" style="display:none;">
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+        <div>
+            <h3 class="text-sm font-semibold text-gray-200">📣 Bu Projeyi Canlandırıyor musunuz?</h3>
+            <p class="text-xs text-gray-400 mt-0.5">Bu dinamik rozeti GitHub README dosyanıza ekleyerek topluluğu buradan organize edin.</p>
+        </div>
+        <!-- Canlı Badge Önizlemesi -->
+        <div class="shrink-0">
+            <img id="dynamicBadgeImg" src="/api/badge/owner/repo" alt="RepoSkeleton Badge" class="h-5">
+        </div>
+    </div>
+
+    <!-- Kopyalama Alanı -->
+    <div class="relative flex items-center bg-gray-950 rounded-lg border border-gray-800 px-3 py-2">
+        <code id="markdownCode" class="text-xs text-green-400 font-mono truncate mr-20 select-all">
+            [![RepoSkeleton](https://reposkeleton-app-e8a5aa87d70f.herokuapp.com/api/badge/owner/repo)](https://reposkeleton-app-e8a5aa87d70f.herokuapp.com/)
+        </code>
+        <button onclick="copyToClipboard()" class="absolute right-2 bg-blue-600 hover:bg-blue-500 text-white text-xs px-2.5 py-1.5  rounded font-medium transition">
+            <span id="btnText">Kopyala</span>
+        </button>
+    </div>
+</div>
+
+<script>
+function copyToClipboard() {
+    const codeText = document.getElementById("markdownCode").innerText.trim();
+    navigator.clipboard.writeText(codeText).then(() => {
+        const btnText = document.getElementById("btnText");
+        btnText.innerText = "Kopyalandı! 🎉";
+        btnText.classList.remove("bg-blue-600");
+        btnText.classList.add("bg-green-600");
+        
+        setTimeout(() => {
+            btnText.innerText = "Kopyala";
+            btnText.classList.remove("bg-green-600");
+            btnText.classList.add("bg-blue-600");
+        }, 2000);
+    });
+}
+
+// Ön yüzdeki mevcut detay yükleme/getirme fonksiyonunun içine bunu bağlayabilirsin:
+function updateBadgeSection(owner, repo) {
+    if(!owner || !repo) return;
+    document.getElementById("dynamicBadgeImg").src = `/api/badge/${owner}/${repo}`;
+    document.getElementById("markdownCode").innerText = `[![RepoSkeleton](https://reposkeleton-app-e8a5aa87d70f.herokuapp.com/api/badge/${owner}/${repo})](https://reposkeleton-app-e8a5aa87d70f.herokuapp.com/)`;
+    document.getElementById("badge-section").style.display = "block";
+}
+</script>
+
 </body>
 </html>

@@ -462,20 +462,21 @@ from fastapi.responses import Response
 @app.get("/api/badge/{owner}/{repo_name}")
 async def get_repo_badge(owner: str, repo_name: str):
     full_name = f"{owner}/{repo_name}"
-    meta = DISCUSSIONS.get(full_name, {})
+    all_data = load_data()
+    meta = all_data.get(full_name, {})
     status = meta.get("status", "dormant")
     
     if status == "revived":
-        color = "#2ea44f"
+        color = "#22c55e"
         text = "Revived"
     elif status == "wip":
-        color = "#d97706"
+        color = "#f59e0b"
         text = "In Progress"
     else:
         color = "#6e7681"
         text = "Dormant"
         
-    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="130" height="20">
+    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="130" height="20" role="img" aria-label="RepoSkeleton: {text}">
       <linearGradient id="b" x2="0" y2="100%">
         <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
         <stop offset="1" stop-opacity=".1"/>
@@ -495,7 +496,7 @@ async def get_repo_badge(owner: str, repo_name: str):
         <text x="96.5" y="14">{text}</text>
       </g>
     </svg>"""
-    return Response(content=svg, media_type="image/svg+xml", headers={"Cache-Control": "max-age=60"})
+    return Response(content=svg, media_type="image/svg+xml", headers={"Cache-Control": "max-age=60, s-maxage=60"})
 
 
 from fastapi.responses import PlainTextResponse
